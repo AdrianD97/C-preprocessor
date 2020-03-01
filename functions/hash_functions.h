@@ -1,7 +1,7 @@
 #ifndef HASH_FUNCTIONS_H
 #define HASH_FUNCTIONS_H
 
-unsigned int stringHash(void* key) {
+unsigned int string_hash(void* key) {
 	unsigned int hash = 5381;
 	char* string = (char*)key;
 	unsigned int i = 0;
@@ -14,7 +14,7 @@ unsigned int stringHash(void* key) {
 	return hash;
 }
 
-unsigned int intHash(void* key) {
+unsigned int int_hash(void* key) {
 	return *(int*)key;
 }
 

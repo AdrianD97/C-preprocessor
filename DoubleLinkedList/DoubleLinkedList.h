@@ -53,6 +53,32 @@ int addItemToDoubleLinkedList(DoubleLinkedList* list, void* value) {
 	return SUCCESS;
 }
 
+// add an item at the beginning of the list
+int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList* list, void* value) {
+	ListNode* node = (ListNode*)malloc(sizeof(ListNode));
+
+	if (!node) {
+		printf("Error: Can not add a new ietm to list.\n");
+		return ENOMEM;
+	}
+
+	node->value = value;
+	node->next = NULL;
+	node->prev = NULL;
+
+	if (list->length == 0) {
+		list->head = list->tail = node;
+	} else {
+		node->next = list->head;
+		list->head->prev = node;
+		list->head = node;
+	}
+
+	++list->length;
+
+	return SUCCESS;
+}
+
 // find an element by value
 ListNode* findElementByValue(const DoubleLinkedList* list, void* value) {
 	if (list->length == 0) {
