@@ -47,16 +47,24 @@ int init(int argc, char** argv) {
 }
 
 int open_in_and_out_files() {
-	file_in = fopen(in_file_name, O_READ);
-	if (!file_in) {
-		printf("Error: Can not open %s file.\n", in_file_name);
-		return INVALID_FILE;
+	if (strcmp(in_file_name, STDIN) == 0) {
+		file_in = stdin;
+	} else {
+		file_in = fopen(in_file_name, O_READ);
+		if (!file_in) {
+			printf("Error: Can not open %s file.\n", in_file_name);
+			return INVALID_FILE;
+		}
 	}
 
-	file_out = fopen(out_file_name, O_WRITE);
-	if (!file_out) {
-		printf("Error: Can not open/create %s file.\n", out_file_name);
-		return INVALID_FILE;
+	if (strcmp(out_file_name, STDOUT) == 0) {
+		out_file = stdout;
+	} else {
+		file_out = fopen(out_file_name, O_WRITE);
+		if (!file_out) {
+			printf("Error: Can not open/create %s file.\n", out_file_name);
+			return INVALID_FILE;
+		}
 	}
 
 	return SUCCESS;
@@ -86,6 +94,7 @@ int main(int argc, char **argv) {
 		return result;
 	}
 
+	// TODO: Chek if in_file and out_file are different by stdin and st
 	result = open_in_and_out_files();
 	if (result != SUCCESS) {
 		free_memory();
