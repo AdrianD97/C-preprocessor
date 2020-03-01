@@ -58,7 +58,7 @@ int open_in_and_out_files() {
 	}
 
 	if (strcmp(out_file_name, STDOUT) == 0) {
-		out_file = stdout;
+		file_out = stdout;
 	} else {
 		file_out = fopen(out_file_name, O_WRITE);
 		if (!file_out) {
