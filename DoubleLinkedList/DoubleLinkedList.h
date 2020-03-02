@@ -29,8 +29,9 @@ int createEmptyDoubleLinkedList(DoubleLinkedList** list, unsigned int (*compare)
 
 // add an item in the list
 int addItemToDoubleLinkedList(DoubleLinkedList* list, void* value) {
-	ListNode* node = (ListNode*)malloc(sizeof(ListNode));
+	ListNode* node;
 
+	node = (ListNode*)malloc(sizeof(ListNode));
 	if (!node) {
 		printf("Error: Can not add a new ietm to list.\n");
 		return ENOMEM;
@@ -55,8 +56,9 @@ int addItemToDoubleLinkedList(DoubleLinkedList* list, void* value) {
 
 // add an item at the beginning of the list
 int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList* list, void* value) {
-	ListNode* node = (ListNode*)malloc(sizeof(ListNode));
+	ListNode* node;
 
+	node = (ListNode*)malloc(sizeof(ListNode));
 	if (!node) {
 		printf("Error: Can not add a new ietm to list.\n");
 		return ENOMEM;
@@ -81,14 +83,17 @@ int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList* list, void* value)
 
 // find an element by value
 ListNode* findElementByValue(const DoubleLinkedList* list, void* value) {
+	int var;
+	ListNode* node1, *node2;
+
 	if (list->length == 0) {
 		return NULL;
 	}
 
-	int var = list->length;
+	var = list->length;
 
-	ListNode* node1 = list->head;
-	ListNode* node2 = list->tail;
+	node1 = list->head;
+	node2 = list->tail;
 
 	while (var > 0) {
 		if (list->compare(node1->value, value)) {
@@ -110,8 +115,9 @@ ListNode* findElementByValue(const DoubleLinkedList* list, void* value) {
 
 // remove an item from list(if exists)
 ListNode* removeItemFromDoubleLinkedList(DoubleLinkedList* list, void* value) {
-	ListNode* node = findElementByValue(list, value);
+	ListNode* node;
 
+	node = findElementByValue(list, value);
 	if (!node) {
 		return NULL;
 	}
@@ -140,12 +146,14 @@ ListNode* removeItemFromDoubleLinkedList(DoubleLinkedList* list, void* value) {
 
 // free memory used
 void freeDoubleLinkedListMemory(DoubleLinkedList* list) {
+	ListNode* node, *help_node;
+
 	if (!list || list->length == 0) {
 		return;
 	}
 
-	ListNode* node = list->head;
-	ListNode* help_node = list->head;
+	node = list->head;
+	help_node = list->head;
 	node = node->next;
 
 	while (node != NULL) {
