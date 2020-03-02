@@ -8,7 +8,7 @@
 
 // create an empty hash table
 int createEmptyHashTable(HashTable** hash_table, int size, unsigned int (*hash)(void*), unsigned int (*compare)(void*, void*)) {
-	int result;
+	int result, i;
 
 	if (!hash_table) {
 		printf("Error: Param \'hash_table\' has invalid value.\n");
@@ -31,7 +31,7 @@ int createEmptyHashTable(HashTable** hash_table, int size, unsigned int (*hash)(
 		return ENOMEM;
 	}
 
-	for (unsigned int i = 0; i < size; ++i) {
+	for (i = 0; i < size; ++i) {
 		result = createEmptyDoubleLinkedList(&((*hash_table)->map[i]), compare);
 		if (result != SUCCESS) {
 			return result;
