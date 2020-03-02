@@ -85,6 +85,23 @@ void close_in_and_out_files() {
 	}
 }
 
+int file_preprocessing() {
+	char* line;
+
+	line = (char*)malloc(LINE_SIZE * sizeof(char));
+	if (!line) {
+		printf("Error: Can not read %s file.\n", in_file_name);
+		return ENOMEM;
+	}
+
+	while (fgets(line, LINE_SIZE, file_in) != NULL)  {
+	    printf("%s", line);
+	}
+	free(line);
+
+	return SUCCESS;
+}
+
 int main(int argc, char **argv) {
 	int result;
 
@@ -101,6 +118,11 @@ int main(int argc, char **argv) {
 	}
 
 	// TODO: preprocesare fisieului de input si scrieerea rezultatului in fisierul de output
+	result = file_preprocessing();
+	if (result != SUCCESS) {
+		free_memory();
+		return result;
+	}
 
 	free_memory();
 	close_in_and_out_files();

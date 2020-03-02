@@ -14,6 +14,7 @@
 #define O_READ "r"
 #define O_WRITE "w"
 #define INVALID_FILE 4
+#define LINE_SIZE 256
 
 typedef struct {
 	void* key;
