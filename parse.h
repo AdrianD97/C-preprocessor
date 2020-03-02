@@ -22,8 +22,9 @@ int parse_arg(char* arg) {
 	token = strtok(NULL, "=");
 
 	if (token) {
-		len = strlen(token) + 1;
+		len = strlen(token) + 2;
 	}
+
 	value = (char*)malloc(len * sizeof(char));
 	if (!value) {
 		printf("Error: An error occured when try to parse cmd args.\n");
@@ -31,9 +32,10 @@ int parse_arg(char* arg) {
 	}
 
 	if (!token) {
-		strcpy(value, "");
+		value[0] = '\0';
 	} else {
-		strcpy(value, token);
+		strcpy(value, "?");
+		strcat(value, token);
 	}
 
 	result = put(hash_table, (void*)symbol, (void*)value);
@@ -51,7 +53,7 @@ int get_out_file_names(int argc, int* index, char** argv) {
 		strcpy(out_file_name, argv[*index] + 2);
 	} else if (++*index < argc) {
 		if (*index + 1 < argc) {
-			printf("Error: Too much output files.\n");
+			printf("Error: Too many output files.\n");
 			return INVALID_NR_PARAMS;
 		}
 		strcpy(out_file_name, argv[*index]);
@@ -122,7 +124,7 @@ int parse_cmd_args(int argc, char** argv) {
 				if (argv[index][0] != '-') {
 					strcpy(out_file_name, argv[index]);
 					if (index + 1 < argc) {
-						printf("Error: Too much output files.\n");
+						printf("Error: Too many output files.\n");
 						return INVALID_NR_PARAMS;
 					}
 				} else {
@@ -156,6 +158,23 @@ void get_file_input_path(char* path, char* in_file_name, int len) {
 	} else {
 		strncpy(path, in_file_name, len + 1);
 		path[len + 1] = '\0';
+	}
+}
+
+void split_line(char* line, char words[][WORD_SIZE], int* nr_words, char* delm) {
+	char* ret;
+
+	*nr_words = 0;
+
+	ret = strtok(line, delm);
+	if (!ret) {
+		return;
+	}
+
+	while (ret) {
+		strcpy(words[*nr_words], ret);
+		++*nr_words;
+		ret = strtok(NULL, delm);
 	}
 }
 

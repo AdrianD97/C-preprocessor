@@ -11,10 +11,18 @@
 #define STDIN "stdin"
 #define STDOUT "stdout"
 #define INVALID_NR_PARAMS 3
-#define O_READ "r"
-#define O_WRITE "w"
+#define O_READ "rb"
+#define O_WRITE "wb"
 #define INVALID_FILE 4
 #define LINE_SIZE 256
+#define LINE_WORDS 100
+#define WORD_SIZE 50
+#define MAPPING_SIZE 100
+#define INCORRECT_IDENTIFIER 5
+#define KEY_EXISTS 7
+#define HELPER_OUT_FILE "f_out_helper.c"
+#define WR "w+"
+#define CURSOR_UNMOVED 6
 
 typedef struct {
 	void* key;

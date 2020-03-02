@@ -34,12 +34,16 @@ void free_data_structures_memory() {
 void free_data_structures_content_memory() {
 	int i;
 	ListNode* node;
+	Pair* pair;
 
 	// free hash table data
 	for (i = 0; i < hash_table->size; ++i) {
 		node = hash_table->map[i]->head;
 		while (node != NULL) {
-			Pair* pair = (Pair*)node->value;
+			pair = (Pair*)node->value;
+			// TODO: only testing purpose
+			// printf("(%s, %s)\n", (char*)pair->key, (char*)pair->value);
+			/////////////////////
 			free(pair->key);
 			free(pair->value);
 
