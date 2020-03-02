@@ -45,9 +45,10 @@ int createEmptyHashTable(HashTable** hash_table, int size, unsigned int (*hash)(
 int put(HashTable* hash_table, void* key, void* value) {
 	int index = hash_table->hash(key) % hash_table->size;
 	int result;
+	ListNode* node;
+	Pair* pair;
 
-	Pair* pair = (Pair*)malloc(sizeof(Pair));
-
+	pair = (Pair*)malloc(sizeof(Pair));
 	if (!pair) {
 		printf("Error: Can not add a new item to hash table.\n");
 		return ENOMEM;
@@ -55,7 +56,7 @@ int put(HashTable* hash_table, void* key, void* value) {
 	pair->key = key;
 	pair->value = value;
 
-	ListNode* node = findElementByValue(hash_table->map[index], (void*)pair);
+	node = findElementByValue(hash_table->map[index], (void*)pair);
 	if (node) {
 		Pair* help = (Pair*)node->value;
 		help->value = value;
@@ -72,19 +73,22 @@ int put(HashTable* hash_table, void* key, void* value) {
 // get value associated with the given key
 void* get(const HashTable* hash_table, void* key) {
 	int index = hash_table->hash(key) % hash_table->size;
+	ListNode* node;
 
-	Pair* pair = (Pair*)malloc(sizeof(Pair));
+	Pair* pair, *pair_help;
+
+	pair = (Pair*)malloc(sizeof(Pair));
 	pair->key = key;
 	pair->value = NULL;
 
-	ListNode* node = findElementByValue(hash_table->map[index], (void*)pair);
+	node = findElementByValue(hash_table->map[index], (void*)pair);
 
 	free(pair);
 	if (!node) {
 		return NULL;
 	}
 
-	Pair* pair_help = (Pair*)node->value;
+	pair_help = (Pair*)node->value;
 
 	return pair_help->value;
 }
@@ -92,8 +96,10 @@ void* get(const HashTable* hash_table, void* key) {
 // remove a (key, value) pair from hash table
 int erase(HashTable* hash_table, void* key) {
 	int index = hash_table->hash(key) % hash_table->size;
+	ListNode* node;
+	Pair* pair;
 
-	Pair* pair = (Pair*)malloc(sizeof(Pair));
+	pair = (Pair*)malloc(sizeof(Pair));
 	if (!pair) {
 		printf("Error: Can not remove item from hash table.\n");
 		return ENOMEM;
@@ -101,7 +107,7 @@ int erase(HashTable* hash_table, void* key) {
 	pair->key = key;
 	pair->value = NULL;
 
-	ListNode* node = removeItemFromDoubleLinkedList(hash_table->map[index], (void*)pair);
+	node = removeItemFromDoubleLinkedList(hash_table->map[index], (void*)pair);
 	if (node) {
 		free(node->value);
 		free(node);
@@ -114,12 +120,15 @@ int erase(HashTable* hash_table, void* key) {
 
 // free used memory
 void freeHashTableMemory(HashTable* hash_table) {
+	unsigned int i;
+	ListNode* node;
+
 	if (!hash_table) {
 		return;
 	}
 	
-	for (unsigned int i = 0; i < hash_table->size; ++i) {
-		ListNode* node = hash_table->map[i]->head;
+	for (i = 0; i < hash_table->size; ++i) {
+		node = hash_table->map[i]->head;
 		while (node != NULL) {
 			free(node->value);
 			node = node->next;

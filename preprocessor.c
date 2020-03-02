@@ -94,7 +94,6 @@ int main(int argc, char **argv) {
 		return result;
 	}
 
-	// TODO: Chek if in_file and out_file are different by stdin and st
 	result = open_in_and_out_files();
 	if (result != SUCCESS) {
 		free_memory();

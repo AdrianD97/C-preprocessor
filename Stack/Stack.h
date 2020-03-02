@@ -28,13 +28,14 @@ int createEmptyStack(Stack** stack, int size) {
 
 // add an element to stack
 int push(Stack* stack, void* value) {
+	StackNode* node;
+
 	// stack is full
 	if (stack->length == stack->size) {
 		return FULL_STACK;
 	}
 
-	StackNode* node = (StackNode*)malloc(sizeof(StackNode));
-
+	node = (StackNode*)malloc(sizeof(StackNode));
 	if (!node) {
 		printf("Error: Can not add a new item to stack.\n");
 		return ENOMEM;
@@ -50,11 +51,13 @@ int push(Stack* stack, void* value) {
 
 // pop an element
 StackNode* pop(Stack* stack) {
+	StackNode* node;
+
 	if (stack->length == 0) {
 		return NULL;
 	}
 
-	StackNode* node = stack->head;
+	node = stack->head;
 	stack->head = node->next;
 	--stack->length;
 
@@ -64,12 +67,14 @@ StackNode* pop(Stack* stack) {
 
 // free memory used
 void freeStackMemory(Stack* stack) {
+	StackNode* node, *help_node;
+
 	if (!stack || stack->length == 0) {
 		return;
 	}
 
-	StackNode* node = stack->head;
-	StackNode* help_node = stack->head;
+	node = stack->head;
+	help_node = stack->head;
 	node = node->next;
 
 	while (node != NULL) {
