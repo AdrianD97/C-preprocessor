@@ -18,7 +18,7 @@
 #define LINE_WORDS 100
 #define WORD_SIZE 50
 #define MAPPING_SIZE 100
-#define INCORRECT_IDENTIFIER 5
+#define INVALID_IDENTIFIER 5
 #define KEY_EXISTS 6
 #define HELPER_OUT_FILE "f_out_helper.c"
 #define WR "w+"
@@ -39,7 +39,6 @@ typedef struct {
 
 DoubleLinkedList * list;
 HashTable *hash_table;
-Stack *stack;
 Stack *files;
 
 char in_file_name[NAME_SIZE];
@@ -47,5 +46,7 @@ char out_file_name[NAME_SIZE];
 FILE *file_in;
 FILE *file_out;
 FILE *err_file;
+
+char *_if = "if*";
 
 #endif // UTILS__H

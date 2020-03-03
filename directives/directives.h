@@ -26,6 +26,22 @@ int is_identifier(char *str)
 	return 1;
 }
 
+int is_number_literal(char *str)
+{
+	int i = 0;
+	int res;
+
+	while (str[i] != '\0') {
+		res = str[i] - '0';
+		if (res < 0 || res > 9) {
+			return 0;
+		}
+		++i;
+	}
+
+	return 1;
+}
+
 int define_helper(char *word, char words[][WORD_SIZE],
 	int nr_words, int *len, int i, int *is_multiline)
 {
@@ -70,7 +86,7 @@ int define_directive(FILE *f_in, FILE *f_out,
 
 	if (!is_identifier(words[1])) {
 		printf("Error: Wrong identifier \'%s\'.\n", words[1]);
-		return INCORRECT_IDENTIFIER;
+		return INVALID_IDENTIFIER;
 	}
 
 	word[0] = '\0';

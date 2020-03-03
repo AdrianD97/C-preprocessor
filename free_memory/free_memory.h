@@ -32,7 +32,6 @@ void free_data_structures_memory(void)
 {
 	free_list_memory();
 	free_hash_table_memory();
-	free_stack_memory(&stack);
 	free_stack_memory(&files);
 }
 
@@ -48,7 +47,7 @@ void free_data_structures_content_memory(void)
 		while (node != NULL) {
 			pair = (Pair *)node->value;
 			// TODO: only testing purpose
-			printf("(%s, %s)\n", (char *)pair->key, (char *)pair->value);
+			// printf("(%s, %s)\n", (char *)pair->key, (char *)pair->value);
 			/////////////////////
 			free(pair->key);
 			free(pair->value);
@@ -63,9 +62,6 @@ void free_data_structures_content_memory(void)
 		free(node->value);
 		node = node->next;
 	}
-
-	// here free stack memory
-	// pentru files nu trebuie pentru ca fac o functie care elibereaza memoria
 }
 
 void close_file(FILE *f)

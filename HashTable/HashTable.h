@@ -102,7 +102,7 @@ int erase(HashTable *hash_table, void *key)
 {
 	int index = hash_table->hash(key) % hash_table->size;
 	ListNode *node;
-	Pair *pair;
+	Pair *pair, *help_pair;
 
 	pair = (Pair *)malloc(sizeof(Pair));
 	if (!pair) {
@@ -114,6 +114,9 @@ int erase(HashTable *hash_table, void *key)
 
 	node = removeItemFromDoubleLinkedList(hash_table->map[index], (void *)pair);
 	if (node) {
+		help_pair = (Pair *)node->value;
+		free(help_pair->key);
+		free(help_pair->value);
 		free(node->value);
 		free(node);
 	}

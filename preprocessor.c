@@ -23,12 +23,6 @@ int init(int argc, char **argv)
 		return result;
 	}
 
-	// create an empty stack
-	result = createEmptyStack(&stack, STACK_SIZE);
-	if (result != SUCCESS) {
-		return result;
-	}
-
 	// create an empty stack(will contains open header files)
 	result = createEmptyStack(&files, STACK_SIZE);
 	if (result != SUCCESS) {
@@ -110,7 +104,68 @@ void close_out_helper_out_and_err_files(FILE *f_out)
 	}
 }
 
-int directives_preprocessing(FILE *f_in, FILE *f_out)
+int ignore_lines(FILE *f_in, FILE *f_out, char* line,
+	Stack *stack, int *found, int ign)
+{
+	int len, result;
+	char words[LINE_WORDS][WORD_SIZE];
+	int nr_words;
+	StackNode *node;
+	char *delm = "\t ";
+	*found = 0;
+
+	while (fgets(line, LINE_SIZE, f_in) != NULL) {
+		len = strlen(line);
+		if (line[len - 1] == '\n') {
+			if (len > 1 && line[len - 2] == '\r') {
+				--len;
+			}
+			line[len - 1] = '\0';
+		}
+
+		split_line(line, words, &nr_words, delm);
+		if (nr_words == 0) {
+			fprintf(f_out, "\n");
+			continue;
+		}
+
+		if (strcmp(words[0], "#if") == 0 ||
+			strcmp(words[0], "#ifdef") == 0 ||
+			strcmp(words[0], "#ifndef") == 0) {
+			result = push(stack, (void *)_if);
+			if (result != SUCCESS) {
+				return result;
+			}
+		} else if (strcmp(words[0], "#endif") == 0) {
+			node = pop(stack);
+			free(node);
+			if (stack->length == 0) {
+				break;
+			}
+		} else if (!ign && (strcmp(words[0], "#else") == 0 || strcmp(words[0], "#elif") == 0)) {
+			result = fseek(f_in, -len, SEEK_CUR);
+			*found = 1;
+			if (result) {
+				printf("Error: can not move the cursor.\n");
+				return CURSOR_UNMOVED;
+			}
+			break;
+		}
+
+		// TODO:
+		/*
+			Daca intalnesc #elif sau #else ma opresc si ma intorc in directives_preprocessing(
+			pentru elif, va trebui sa ma intorc cu o linie inapoi deoarece trebuie sa verific daca
+			cond este true sau nu)
+		*/
+	}
+
+	// TODO:
+	// Daca am citit tot fisierul si nu am gasit #endif => eroare
+	return SUCCESS;
+}
+
+int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 {
 	int result;
 	char *line, *copy_line;
@@ -121,7 +176,9 @@ int directives_preprocessing(FILE *f_in, FILE *f_out)
 	ListNode *node;
 	char *file_path;
 	char file_name[NAME_SIZE];
-	StackNode *s_node;
+	void *val;
+	Stack *stack;
+	int found;
 
 	line = (char *)malloc(LINE_SIZE * sizeof(char));
 	if (!line) {
@@ -159,9 +216,6 @@ int directives_preprocessing(FILE *f_in, FILE *f_out)
 				return result;
 			}
 		} else if (strcmp(words[0], "#include") == 0) {
-			// TODO: find file
-			// open file
-			// call directives_preprocessing() function on new open file and same out file
 			FILE *f;
 			int found = 0;
 
@@ -213,23 +267,340 @@ int directives_preprocessing(FILE *f_in, FILE *f_out)
 				free(copy_line);
 				return INVALID_FILE;
 			}
-			result = directives_preprocessing(f, f_out);
+			result = directives_preprocessing(f, f_out, 0);
 
 			if (result != SUCCESS) {
+				free(line);
+				free(copy_line);
 				return result;
 			}
-		} else {
-			// TODO: Daca nu este nici-un fel de directiva, atunci scrie direct in fisierul intermediar linia
+		} else if (strcmp(words[0], "#ifdef") == 0) {
+			// In loc de ifdef pun if, si mai trebuie sa adaug pe langa identifier sa verific ca este
+			// numar si ca este diferit de 0
+			// TODO: Defpat nu schimb ci doar copiez acest ifdef pt if, si mai verific ca este numar diferit de 0
+			// sau valoarea literalui sa fie diferita de 0
+			/*
+			OBS asta trebuie si pentru elif
+				1. daca este numar, trebuie sa fie diferit de 0
+				2. daca este symbol, trebuie sa existe si sa aiba valoare diferita de 0.
+				3. orice altceva insemana false
+			*/
+			if (!is_identifier(words[1])) {
+				printf("Error: %s is invalid identifier.\n", words[1]);
+				free(line);
+				free(copy_line);
+				return INVALID_IDENTIFIER;
+			}
+
+
+			val = get(hash_table, (void *)words[1]);
+			if (!val) {
+				result = createEmptyStack(&stack, STACK_SIZE);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					return result;
+				}
+				
+				result = push(stack, (void *)_if);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				free_stack_memory(&stack);
+
+				if (found) {
+					result = directives_preprocessing(f_in, f_out, 0);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+					}
+				}
+			} else {
+				result = directives_preprocessing(f_in, f_out, 1);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+				}
+			}
+		} else if (strcmp(words[0], "#ifndef") == 0) {
+			if (!is_identifier(words[1])) {
+				printf("Error: %s is invalid identifier.\n", words[1]);
+				free(line);
+				free(copy_line);
+				return INVALID_IDENTIFIER;
+			}
+
+
+			val = get(hash_table, (void *)words[1]);
+			if (val) {
+				result = createEmptyStack(&stack, STACK_SIZE);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					return result;
+				}
+				
+				result = push(stack, (void *)_if);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				free_stack_memory(&stack);
+
+				if (found) {
+					result = directives_preprocessing(f_in, f_out, 0);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+					}
+				}
+			} else {
+				result = directives_preprocessing(f_in, f_out, 1);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+				}
+			}
+		} else if (strcmp(words[0], "#if") == 0) {
+			int is_n_lit = is_number_literal(words[1]);
+			int is_id = is_identifier(words[1]);
+			int process_lines = 0;
+
+			if (!is_n_lit && !is_id) {
+				printf("Error: %s is invalid identifier/number_literal.\n", words[1]);
+				free(line);
+				free(copy_line);
+				return INVALID_IDENTIFIER;
+			}
+
+			if (is_n_lit && words[1][0] != '0') {
+				process_lines = 1;
+			}
+
+			if (!process_lines && is_id) {
+				val = get(hash_table, (void *)words[1]);
+				if (val) {
+					if (((char*)val)[0] != '0') {
+						process_lines = 1;
+					}
+				}
+			}
+
+			if (!process_lines) {
+				result = createEmptyStack(&stack, STACK_SIZE);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					return result;
+				}
+				
+				result = push(stack, (void *)_if);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				free_stack_memory(&stack);
+
+				if (found) {
+					result = directives_preprocessing(f_in, f_out, 0);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+					}
+				}
+			} else {
+				result = directives_preprocessing(f_in, f_out, 1);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+				}
+			}
+		} else if (strcmp(words[0], "#elif") == 0) {
+			if (ign == 1) {
+				result = createEmptyStack(&stack, STACK_SIZE);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					return result;
+				}
+				
+				result = push(stack, (void *)_if);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				free_stack_memory(&stack);
+
+				if (found) {
+					result = directives_preprocessing(f_in, f_out, 1);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+					}
+				}
+			} else {
+				int is_n_lit = is_number_literal(words[1]);
+				int is_id = is_identifier(words[1]);
+				int process_lines = 0;
+
+				if (!is_n_lit && !is_id) {
+					printf("Error: %s is invalid identifier/number_literal.\n", words[1]);
+					free(line);
+					free(copy_line);
+					return INVALID_IDENTIFIER;
+				}
+
+				if (is_n_lit && words[1][0] != '0') {
+					process_lines = 1;
+				}
+
+				if (!process_lines && is_id) {
+					val = get(hash_table, (void *)words[1]);
+					if (val) {
+						if (((char*)val)[0] != '0') {
+							process_lines = 1;
+						}
+					}
+				}
+
+				if (!process_lines) {
+					result = createEmptyStack(&stack, STACK_SIZE);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+						return result;
+					}
+					
+					result = push(stack, (void *)_if);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+						free_stack_memory(&stack);
+						return result;
+					}
+
+					result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+						free_stack_memory(&stack);
+						return result;
+					}
+
+					free_stack_memory(&stack);
+
+					if (found) {
+						result = directives_preprocessing(f_in, f_out, 0);
+						if (result != SUCCESS) {
+							free(line);
+							free(copy_line);
+						}
+					}
+				} else {
+					result = directives_preprocessing(f_in, f_out, 1);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+					}
+				}
+			}
+		} else if (strcmp(words[0], "#else") == 0) {
+			if (ign == 1) {
+				result = createEmptyStack(&stack, STACK_SIZE);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					return result;
+				}
+				
+				result = push(stack, (void *)_if);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				result = ignore_lines(f_in, f_out, line, stack, &found, 1);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					free_stack_memory(&stack);
+					return result;
+				}
+
+				free_stack_memory(&stack);
+			} else {
+				result = directives_preprocessing(f_in, f_out, 0);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+				}
+			}
+				
+		} else if (strcmp(words[0], "#undef") == 0) {
+			if (!is_identifier(words[1])) {
+				printf("Error: %s is invalid identifier.\n", words[1]);
+				free(line);
+				free(copy_line);
+				return INVALID_IDENTIFIER;
+			}
+
+			result = erase(hash_table, (void *)words[1]);
+			if (result != SUCCESS) {
+				printf("Error: Can not remove %s identifier\n", words[1]);
+				free(line);
+				free(copy_line);
+				return result;
+			}
+		} else if (strcmp(words[0], "#endif") != 0) {
 			fprintf(f_out, "%s\n", copy_line);
 		}
-	}
-
-	// TODO: Close input file after preprocessing
-	// TODO: nu vei putea inchide daca avem stdin, pentru ca eu voi citi de la tastatura in continuare
-	s_node = pop(files);
-	if (s_node) {
-		close_file((FILE *)s_node->value);
-		free(s_node);
 	}
 
 	free(line);
@@ -473,7 +844,7 @@ int main(int argc, char **argv)
 		return INVALID_FILE;
 	}
 
-	result = directives_preprocessing(file_in, f_out_helper);
+	result = directives_preprocessing(file_in, f_out_helper, 0);
 
 	if (result != SUCCESS) {
 		free_memory();
