@@ -105,19 +105,22 @@ int directives_preprocessing(FILE* f_in, FILE* f_out) {
 
 	line = (char*)malloc(LINE_SIZE * sizeof(char));
 	if (!line) {
-		printf("Error: Can alloc memory for \'line\' variable.\n");
+		printf("Error: Can not alloc memory for \'line\' variable.\n");
 		return ENOMEM;
 	}
 
 	copy_line = (char*)malloc(LINE_SIZE * sizeof(char));
 	if (!copy_line) {
-		printf("Error: Can alloc memory for \'copy_line\' variable.\n");
+		printf("Error: Can not alloc memory for \'copy_line\' variable.\n");
 		return ENOMEM;
 	}
 
 	while (fgets(line, LINE_SIZE, f_in) != NULL)  {
 		len = strlen(line);
 		if (line[len - 1] == '\n') {
+			if (len > 1 && line[len - 2] == '\r') {
+				--len;
+			} 
 			line[len - 1] = '\0';
 		}
 	    
@@ -144,6 +147,8 @@ int directives_preprocessing(FILE* f_in, FILE* f_out) {
 			fprintf(f_out, "%s\n", copy_line);
 		}
 	}
+
+	// TODO: Close input file after preprocessing
 	free(line);
 	free(copy_line);
 

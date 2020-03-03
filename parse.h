@@ -148,7 +148,7 @@ void get_file_input_path(char* path, char* in_file_name, int len) {
 	}
 
 	--len;
-	while (len >= 0 && in_file_name[len] != '\\' && in_file_name[len] != '/') {
+	while (len >= 0 && in_file_name[len] != '/') {// in_file_name[len] != '\\' && in_file_name[len] != '/') {
 		--len;
 	}
 
