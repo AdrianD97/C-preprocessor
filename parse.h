@@ -9,6 +9,7 @@ int parse_arg(char* arg) {
 	char* symbol;
 	char* value;
 	int len = 2, result;
+	void* val;
 
 	token = strtok(arg, "=");
 
@@ -38,10 +39,19 @@ int parse_arg(char* arg) {
 		strcat(value, token);
 	}
 
-	result = put(hash_table, (void*)symbol, (void*)value);
+	val = get(hash_table, (void*)symbol);
 
+	result = put(hash_table, (void*)symbol, (void*)value);
 	if (result != SUCCESS) {
+		free(symbol);
+		free(value);
 		return result;
+	}
+
+	if (val) {
+		printf("Warnning: %s redefined.\n", symbol);
+		free(val);
+		free(symbol);
 	}
 
 	return SUCCESS;

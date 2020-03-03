@@ -71,14 +71,8 @@ int open_in_and_out_files() {
 	return SUCCESS;
 }
 
-void close_in_and_out_files(FILE* f_out) {
+void close_out_helper_and_out_files(FILE* f_out) {
 	int result;
-
-	result = fclose(file_in);
-
-	if (result) {
-		printf("Error: Can not close %s file.\n", in_file_name);
-	}
 
 	result = fclose(file_out);
 	if (result) {
@@ -96,7 +90,7 @@ void close_in_and_out_files(FILE* f_out) {
 }
 
 int directives_preprocessing(FILE* f_in, FILE* f_out) {
-	int result, i;
+	int result;
 	char* line, *copy_line;
 	char words[LINE_WORDS][WORD_SIZE];
 	int nr_words;
@@ -140,8 +134,15 @@ int directives_preprocessing(FILE* f_in, FILE* f_out) {
 			}
 		} else if (strcmp(words[0], "#include") == 0) {
 			// TODO: find file
+			// open file
+			// call directives_preprocessing() function on new open file and same out file
 
-			printf("%s\n", words[1]);
+			// printf("%s\n", words[1]);
+			ListNode* node = list->head;
+			while (node != NULL) {
+				printf("%s\n", (char*)node->value);
+				node = node->next;
+			}
 		} else {
 			// TODO: Daca nu este nici-un fel de directiva, atunci scrie direct in fisierul intermediar linia
 			fprintf(f_out, "%s\n", copy_line);
@@ -149,6 +150,11 @@ int directives_preprocessing(FILE* f_in, FILE* f_out) {
 	}
 
 	// TODO: Close input file after preprocessing
+	result = fclose(f_in);
+	if (result) {
+		printf("Error: Can not close file.\n");
+	}
+
 	free(line);
 	free(copy_line);
 
@@ -156,8 +162,6 @@ int directives_preprocessing(FILE* f_in, FILE* f_out) {
 }
 
 void get_string(char* word, char words[][WORD_SIZE], int nr_words, int* index) {
-	int len;
-
 	for (; *index < nr_words; ++*index) {
 		if (strchr(words[*index], '\"')) {
 			strcat(word, words[*index]);
@@ -291,10 +295,11 @@ int file_preprocessing(FILE* f_in) {
 	char* final_line;
 	void* val;
 	char* delm = "\t ();";
+	char* occ;
 
 	line = (char*)malloc(LINE_SIZE * sizeof(char));
 	if (!line) {
-		printf("Error: Can alloc memory for \'line\' variable.\n");
+		printf("Error: Can not alloc memory for \'line\' variable.\n");
 		return ENOMEM;
 	}
 
@@ -320,9 +325,12 @@ int file_preprocessing(FILE* f_in) {
 		final_line[0] = '\0';
 
 		for (i = 0; i < nr_words; ++i) {
-			if (strchr(words[i], '\"')) {
+			if ((occ = strchr(words[i], '\"'))) {
 				strcat(final_line, words[i]);
 				strcat(final_line, " ");
+				if (strchr(occ, '\"')) {
+					continue;
+				}
 				++i;
 				get_string(final_line, words, nr_words, &i);
 			} else if (is_identifier(words[i])) {
@@ -368,25 +376,28 @@ int main(int argc, char **argv) {
 		return result;
 	}
 
-	// TODO: preprocesare fisieului de input si scrieerea rezultatului in fisierul de output
 	result = directives_preprocessing(file_in, f_out_helper);
 	if (result != SUCCESS) {
 		free_memory();
-		close_in_and_out_files(f_out_helper);
+		close_out_helper_and_out_files(f_out_helper);
+		result = fclose(file_in);
+		if (result) {
+			printf("Error: Can not close %s file.\n", in_file_name);
+		}
 		return result;
 	}
 
 	result = get_symbols_final_value();
 	if (result != SUCCESS) {
 		free_memory();
-		close_in_and_out_files(f_out_helper);
+		close_out_helper_and_out_files(f_out_helper);
 		return result;
 	}
 
 	result = fseek(f_out_helper, 0, SEEK_SET);
 	if (result) {
 		free_memory();
-		close_in_and_out_files(f_out_helper);
+		close_out_helper_and_out_files(f_out_helper);
 		printf("Error: can not move the cursor.\n");
 		return CURSOR_UNMOVED;
 	}
@@ -394,12 +405,12 @@ int main(int argc, char **argv) {
 	result = file_preprocessing(f_out_helper);
 	if (result != SUCCESS) {
 		free_memory();
-		close_in_and_out_files(f_out_helper);
+		close_out_helper_and_out_files(f_out_helper);
 		return result;
 	}
 
 	free_memory();
-	close_in_and_out_files(f_out_helper);
+	close_out_helper_and_out_files(f_out_helper);
 
 	return 0;
 }

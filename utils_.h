@@ -19,10 +19,10 @@
 #define WORD_SIZE 50
 #define MAPPING_SIZE 100
 #define INCORRECT_IDENTIFIER 5
-#define KEY_EXISTS 7
+#define KEY_EXISTS 6
 #define HELPER_OUT_FILE "f_out_helper.c"
 #define WR "w+"
-#define CURSOR_UNMOVED 6
+#define CURSOR_UNMOVED 7
 
 typedef struct {
 	void* key;

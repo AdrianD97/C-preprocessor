@@ -42,7 +42,7 @@ void free_data_structures_content_memory() {
 		while (node != NULL) {
 			pair = (Pair*)node->value;
 			// TODO: only testing purpose
-			// printf("(%s, %s)\n", (char*)pair->key, (char*)pair->value);
+			printf("(%s, %s)\n", (char*)pair->key, (char*)pair->value);
 			/////////////////////
 			free(pair->key);
 			free(pair->value);

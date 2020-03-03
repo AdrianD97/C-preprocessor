@@ -59,7 +59,6 @@ int put(HashTable* hash_table, void* key, void* value) {
 	node = findElementByValue(hash_table->map[index], (void*)pair);
 	if (node) {
 		Pair* help = (Pair*)node->value;
-		// TODO: va trebui sa dau free(pair->value)
 		help->value = value;
 		free(pair);
 

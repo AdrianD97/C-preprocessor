@@ -26,7 +26,6 @@ int is_identifier(char* str) {
 }
 
 int define_helper(char* word, char words[][WORD_SIZE], int nr_words, int* len, int i, int* is_multiline) {
-	void* val;
 	int len_;
 
 	for (; i < nr_words; ++i) {
@@ -58,10 +57,11 @@ int define_directive(FILE* f_in, FILE* f_out, char words[][WORD_SIZE], int nr_wo
 	int str_len, nr_words_def;
 	char word[MAPPING_SIZE];
 	char words_def[LINE_WORDS][WORD_SIZE];
-	int i, result;
+	int result;
 	char* line;
 	int is_multiline;
 	char* delm = "\t ";
+	void* val;
 
 	if (!is_identifier(words[1])) {
 		printf("Error: Wrong identifier \'%s\'.\n", words[1]);
@@ -130,11 +130,19 @@ int define_directive(FILE* f_in, FILE* f_out, char words[][WORD_SIZE], int nr_wo
 
 	strcpy(value, word);
 
+	val = get(hash_table, (void*)symbol);
+
 	result = put(hash_table, (void*)symbol, (void*)value);
 	if (result != SUCCESS) {
 		free(symbol);
 		free(value);
 		return result;
+	}
+
+	if (val) {
+		printf("Warnning: %s redefined.\n", symbol);
+		free(val);
+		free(symbol);
 	}
 
 	return SUCCESS;
