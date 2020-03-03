@@ -1,7 +1,7 @@
 #ifndef UTILS__H
 #define UTILS__H
 
-#define ENOMEM 12
+#define ENOMEM -12
 #define SUCCESS 0
 #define INVALID_VALUE 1
 #define FULL_STACK 2
@@ -23,23 +23,29 @@
 #define HELPER_OUT_FILE "f_out_helper.c"
 #define WR "w+"
 #define CURSOR_UNMOVED 7
+#define PATH_SIZE 256
+#define NR_HEADERS_FILES 100
+#define ERR_FILE "err_file.log"
 
 typedef struct {
-	void* key;
-	void* value;
+	void *key;
+	void *value;
 } Pair;
 
 #include "./DoubleLinkedList/DoubleLinkedList.h"
 #include "./HashTable/HashTable.h"
 #include "./Stack/Stack.h"
 
-DoubleLinkedList* list = NULL;
-HashTable* hash_table = NULL;
-Stack* stack = NULL;
+
+DoubleLinkedList * list;
+HashTable *hash_table;
+Stack *stack;
+Stack *files;
 
 char in_file_name[NAME_SIZE];
 char out_file_name[NAME_SIZE];
-FILE* file_in = NULL;
-FILE* file_out = NULL;
+FILE *file_in;
+FILE *file_out;
+FILE *err_file;
 
 #endif // UTILS__H

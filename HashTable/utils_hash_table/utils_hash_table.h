@@ -5,8 +5,8 @@
 
 typedef struct {
 	int size;
-	unsigned int (*hash)(void*);
-	DoubleLinkedList** map;
+	unsigned int (*hash)(void *);
+	DoubleLinkedList **map;
 } HashTable;
 
 #endif // UTILS_HASH_TABLE_H

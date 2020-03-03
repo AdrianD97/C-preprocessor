@@ -7,17 +7,19 @@
 #include "utils_double_linked_list/utils_double_linked_list.h"
 
 // create an empty double linked list
-int createEmptyDoubleLinkedList(DoubleLinkedList** list, unsigned int (*compare)(void*, void*)) {
+int createEmptyDoubleLinkedList(DoubleLinkedList **list,
+	unsigned int (*compare)(void *, void *))
+{
 	if (!list) {
 		printf("Error: Param \'list\' has invalid value.\n");
 		return INVALID_VALUE;
 	}
 
-	*list = (DoubleLinkedList*)malloc(sizeof(DoubleLinkedList));
+	*list = (DoubleLinkedList *)malloc(sizeof(DoubleLinkedList));
 
 	if (!(*list)) {
 		printf("Error: Can not alloc memory for list object.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 
 	(*list)->head = (*list)->tail = NULL;
@@ -28,13 +30,14 @@ int createEmptyDoubleLinkedList(DoubleLinkedList** list, unsigned int (*compare)
 }
 
 // add an item in the list
-int addItemToDoubleLinkedList(DoubleLinkedList* list, void* value) {
-	ListNode* node;
+int addItemToDoubleLinkedList(DoubleLinkedList *list, void *value)
+{
+	ListNode *node;
 
-	node = (ListNode*)malloc(sizeof(ListNode));
+	node = (ListNode *)malloc(sizeof(ListNode));
 	if (!node) {
 		printf("Error: Can not add a new ietm to list.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 
 	node->value = value;
@@ -55,13 +58,14 @@ int addItemToDoubleLinkedList(DoubleLinkedList* list, void* value) {
 }
 
 // add an item at the beginning of the list
-int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList* list, void* value) {
-	ListNode* node;
+int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList *list, void *value)
+{
+	ListNode *node;
 
-	node = (ListNode*)malloc(sizeof(ListNode));
+	node = (ListNode *)malloc(sizeof(ListNode));
 	if (!node) {
 		printf("Error: Can not add a new ietm to list.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 
 	node->value = value;
@@ -82,9 +86,10 @@ int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList* list, void* value)
 }
 
 // find an element by value
-ListNode* findElementByValue(const DoubleLinkedList* list, void* value) {
+ListNode *findElementByValue(const DoubleLinkedList *list, void *value)
+{
 	int var;
-	ListNode* node1, *node2;
+	ListNode *node1, *node2;
 
 	if (list->length == 0) {
 		return NULL;
@@ -114,8 +119,9 @@ ListNode* findElementByValue(const DoubleLinkedList* list, void* value) {
 }
 
 // remove an item from list(if exists)
-ListNode* removeItemFromDoubleLinkedList(DoubleLinkedList* list, void* value) {
-	ListNode* node;
+ListNode *removeItemFromDoubleLinkedList(DoubleLinkedList *list, void *value)
+{
+	ListNode *node;
 
 	node = findElementByValue(list, value);
 	if (!node) {
@@ -145,8 +151,9 @@ ListNode* removeItemFromDoubleLinkedList(DoubleLinkedList* list, void* value) {
 }
 
 // free memory used
-void freeDoubleLinkedListMemory(DoubleLinkedList* list) {
-	ListNode* node, *help_node;
+void freeDoubleLinkedListMemory(DoubleLinkedList *list)
+{
+	ListNode *node, *help_node;
 
 	if (!list || list->length == 0) {
 		return;

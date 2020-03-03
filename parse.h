@@ -4,19 +4,20 @@
 #include <string.h>
 #include <stdlib.h>
 
-int parse_arg(char* arg) {
-	char* token;
-	char* symbol;
-	char* value;
+int parse_arg(char *arg)
+{
+	char *token;
+	char *symbol;
+	char *value;
 	int len = 2, result;
-	void* val;
+	void *val;
 
 	token = strtok(arg, "=");
 
-	symbol = (char*)malloc((strlen(token) + 1) * sizeof(char));
+	symbol = (char *)malloc((strlen(token) + 1) * sizeof(char));
 	if (!symbol) {
 		printf("Error: An error occured when try to parse cmd args.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 	strcpy(symbol, token);
 
@@ -26,10 +27,10 @@ int parse_arg(char* arg) {
 		len = strlen(token) + 2;
 	}
 
-	value = (char*)malloc(len * sizeof(char));
+	value = (char *)malloc(len * sizeof(char));
 	if (!value) {
 		printf("Error: An error occured when try to parse cmd args.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 
 	if (!token) {
@@ -39,9 +40,9 @@ int parse_arg(char* arg) {
 		strcat(value, token);
 	}
 
-	val = get(hash_table, (void*)symbol);
+	val = get(hash_table, (void *)symbol);
 
-	result = put(hash_table, (void*)symbol, (void*)value);
+	result = put(hash_table, (void *)symbol, (void *)value);
 	if (result != SUCCESS) {
 		free(symbol);
 		free(value);
@@ -58,7 +59,8 @@ int parse_arg(char* arg) {
 
 }
 
-int get_out_file_names(int argc, int* index, char** argv) {
+int get_out_file_names(int argc, int *index, char **argv)
+{
 	if (argv[*index][2] != '\0') {
 		strcpy(out_file_name, argv[*index] + 2);
 	} else if (++*index < argc) {
@@ -72,10 +74,11 @@ int get_out_file_names(int argc, int* index, char** argv) {
 	return SUCCESS;
 }
 
-int parse_cmd_args(int argc, char** argv) {
+int parse_cmd_args(int argc, char **argv)
+{
 	int index = 1;
 	int result;
-	char* path;
+	char *path;
 	int len;
 
 	while (index != argc) {
@@ -96,10 +99,10 @@ int parse_cmd_args(int argc, char** argv) {
 				len = strlen(argv[index]) - 1;
 			}
 
-			path = (char*)malloc(len * sizeof(char));
+			path = (char *)malloc(len * sizeof(char));
 			if (!path) {
 				printf("Error: An error occured when try to parse cmd args.\n");
-				return ENOMEM;
+				return -ENOMEM;
 			}
 
 			if (argv[index][2] == '\0') {
@@ -108,7 +111,7 @@ int parse_cmd_args(int argc, char** argv) {
 				strcpy(path, argv[index] + 2);
 			}
 
-			result = addItemToDoubleLinkedList(list, (void*)path);
+			result = addItemToDoubleLinkedList(list, (void *)path);
 			if (result != SUCCESS) {
 				return result;
 			}
@@ -150,7 +153,8 @@ int parse_cmd_args(int argc, char** argv) {
 	return SUCCESS;
 }
 
-void get_file_input_path(char* path, char* in_file_name, int len) {
+void get_file_input_path(char *path, char *in_file_name, int len)
+{
 	if (strcmp(in_file_name, STDIN) == 0) {
 		path[0] = '.';
 		path[1] = '\0';
@@ -158,7 +162,8 @@ void get_file_input_path(char* path, char* in_file_name, int len) {
 	}
 
 	--len;
-	while (len >= 0 && in_file_name[len] != '/') {// in_file_name[len] != '\\' && in_file_name[len] != '/') {
+	while (len >= 0 && in_file_name[len] != '/') {
+	// in_file_name[len] != '\\' && in_file_name[len] != '/') {
 		--len;
 	}
 
@@ -171,8 +176,9 @@ void get_file_input_path(char* path, char* in_file_name, int len) {
 	}
 }
 
-void split_line(char* line, char words[][WORD_SIZE], int* nr_words, char* delm) {
-	char* ret;
+void split_line(char *line, char words[][WORD_SIZE], int *nr_words, char *delm)
+{
+	char *ret;
 
 	*nr_words = 0;
 

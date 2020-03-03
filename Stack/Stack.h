@@ -7,16 +7,17 @@
 #include "utils_stack/utils_stack.h"
 
 // create an empty stack
-int createEmptyStack(Stack** stack, int size) {
+int createEmptyStack(Stack **stack, int size)
+{
 	if (!stack) {
 		printf("Error: Param \'stack\' has invalid value.\n");
 		return INVALID_VALUE;
 	}
 
-	*stack = (Stack*)malloc(sizeof(Stack));
+	*stack = (Stack *)malloc(sizeof(Stack));
 	if (!(*stack)) {
 		printf("Error: Can not alloc memory for stack object.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 
 	(*stack)->size = size;
@@ -27,18 +28,19 @@ int createEmptyStack(Stack** stack, int size) {
 }
 
 // add an element to stack
-int push(Stack* stack, void* value) {
-	StackNode* node;
+int push(Stack *stack, void *value)
+{
+	StackNode *node;
 
 	// stack is full
 	if (stack->length == stack->size) {
 		return FULL_STACK;
 	}
 
-	node = (StackNode*)malloc(sizeof(StackNode));
+	node = (StackNode *)malloc(sizeof(StackNode));
 	if (!node) {
 		printf("Error: Can not add a new item to stack.\n");
-		return ENOMEM;
+		return -ENOMEM;
 	}
 	node->value = value;
 
@@ -50,8 +52,9 @@ int push(Stack* stack, void* value) {
 }
 
 // pop an element
-StackNode* pop(Stack* stack) {
-	StackNode* node;
+StackNode *pop(Stack *stack)
+{
+	StackNode *node;
 
 	if (stack->length == 0) {
 		return NULL;
@@ -66,8 +69,9 @@ StackNode* pop(Stack* stack) {
 }
 
 // free memory used
-void freeStackMemory(Stack* stack) {
-	StackNode* node, *help_node;
+void freeStackMemory(Stack *stack)
+{
+	StackNode *node, *help_node;
 
 	if (!stack || stack->length == 0) {
 		return;
