@@ -1,48 +1,7 @@
 #ifndef DIRECTIVES_H
 #define DIRECTIVES_H
 
-int is_identifier(char *str)
-{
-	int res1, res2, res3, i = 1;
-
-	res1 = (int)(str[0] - 'a');
-	res2 = (int)(str[0] - 'A');
-	if (str[0] != '_' && (res1 < 0 || res1 > 25)
-		&& (res2 < 0 || res2 > 25)) {
-		return 0;
-	}
-
-	while (str[i] != '\0') {
-		res1 = (int)(str[i] - 'a');
-		res2 = (int)(str[i] - 'A');
-		res3 = (int)(str[i] - '0');
-
-		if (str[i] != '_' && (res1 < 0 || res1 > 25) &&
-			(res2 < 0 || res2 > 25) && (res3 < 0 || res3 > 9)) {
-			return 0;
-		}
-		++i;
-	}
-	return 1;
-}
-
-int is_number_literal(char *str)
-{
-	int i = 0;
-	int res;
-
-	while (str[i] != '\0') {
-		res = str[i] - '0';
-		if (res < 0 || res > 9) {
-			return 0;
-		}
-		++i;
-	}
-
-	return 1;
-}
-
-int define_helper(char *word, char words[][WORD_SIZE],
+void define_helper(char *word, char words[][WORD_SIZE],
 	int nr_words, int *len, int i, int *is_multiline)
 {
 	int len_;
@@ -65,8 +24,6 @@ int define_helper(char *word, char words[][WORD_SIZE],
 		strcat(word, " ");
 		++*len;
 	}
-
-	return SUCCESS;
 }
 
 int define_directive(FILE *f_in, FILE *f_out,
@@ -101,12 +58,8 @@ int define_directive(FILE *f_in, FILE *f_out,
 
 	if (nr_words >= 3) {
 		is_multiline = 0;
-		result = define_helper(word, words,
+		define_helper(word, words,
 			nr_words, &len, 2, &is_multiline);
-		if (result != SUCCESS) {
-			free(symbol);
-			return result;
-		}
 
 		if (is_multiline) {
 			line = (char *)malloc(LINE_SIZE * sizeof(char));
@@ -136,14 +89,8 @@ int define_directive(FILE *f_in, FILE *f_out,
 					break;
 				}
 
-				result = define_helper(word, words_def,
+				define_helper(word, words_def,
 					nr_words_def, &len, 0, &is_multiline);
-				if (result != SUCCESS) {
-					free(symbol);
-					free(line);
-					return result;
-				}
-
 
 				if (!is_multiline) {
 					break;

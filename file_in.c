@@ -69,8 +69,23 @@ printf("ABC EXISTS\n");
 #define ABC 3009
 printf("ABC doesn't exists\n");
 #endif
+
+/////////////////
+
+#define A1 89
+
+#define A2 A1 \
+	+ 87
+
+#undef A1
+
+#define A3 45 + 78 + A1
+
+#define A4 78 + A2
+/////////////////
+
 int main() {
-    printf("%d\n", ABC);
+    printf("%d\n", A2);
     int x = BCD + 20;
 
     return 0;

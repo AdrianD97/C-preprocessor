@@ -3,7 +3,11 @@
 #include "functions/compare_functions.h"
 #include "functions/hash_functions.h"
 #include "free_memory/free_memory.h"
+#include "check_symbol_type.h"
+#include "symbols_values.h"
 #include "directives/directives.h"
+
+
 /*
 	Vezi test 9
 	se inlocuiesc toate aparitiile pana la undef 
@@ -157,17 +161,72 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 			}
 			break;
 		}
-
-		// TODO:
-		/*
-			Daca intalnesc #elif sau #else ma opresc si ma intorc in directives_preprocessing(
-			pentru elif, va trebui sa ma intorc cu o linie inapoi deoarece trebuie sa verific daca
-			cond este true sau nu)
-		*/
 	}
 
 	// TODO:
 	// Daca am citit tot fisierul si nu am gasit #endif => eroare
+	return SUCCESS;
+}
+
+int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *final_line)
+{
+	int i, j, k, result;
+	char val[MAPPING_SIZE];
+	char *str = " \t[]{}<>=+-*/%!&|^.,:;()\\";
+	char new_line[LINE_SIZE];
+	char *occ;
+
+	strcpy(new_line, "");
+
+	for (i = 0; i < nr_words; ++i) {
+		occ = strchr(words[i], '\"');
+		if (occ) {
+			strcat(final_line, words[i]);
+			// strcat(final_line, " ");
+			if (strchr(occ, '\"')) {
+				continue;
+			}
+			++i;
+			get_string(final_line, words, nr_words, &i);
+		} else if (is_var_type(words[i])) {
+			strcat(final_line, words[i]);
+		} 
+		else if (is_identifier(words[i])) {
+			strcpy(val, "");
+			result = get_symbol_value(words[i], val);
+			if (result != SUCCESS) {
+				return result;
+			}
+			strcat(final_line, val);
+		} else {
+			strcat(final_line, words[i]);
+		}
+	}
+
+	// TODO: Following code is wrong
+	/*
+		Trebuie reconstituita linia
+	*/
+	printf("Line = %s\n", line);
+	printf("final_line = %s\n", final_line);
+	
+	i = 0;
+	j = 0;
+	k = 0;
+
+	while (line[i] != '\0') {
+		if (strchr(str, line[i])) {
+			new_line[j++] = line[i];
+		} else {
+			new_line[j++] = final_line[k];
+			++k;
+		}
+		
+		++i;
+	}
+	strcpy(final_line, new_line);
+	printf("new_line = %s\n", new_line);
+
 	return SUCCESS;
 }
 
@@ -281,16 +340,6 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				return result;
 			}
 		} else if (strcmp(words[0], "#ifdef") == 0) {
-			// In loc de ifdef pun if, si mai trebuie sa adaug pe langa identifier sa verific ca este
-			// numar si ca este diferit de 0
-			// TODO: Defpat nu schimb ci doar copiez acest ifdef pt if, si mai verific ca este numar diferit de 0
-			// sau valoarea literalui sa fie diferita de 0
-			/*
-			OBS asta trebuie si pentru elif
-				1. daca este numar, trebuie sa fie diferit de 0
-				2. daca este symbol, trebuie sa existe si sa aiba valoare diferita de 0.
-				3. orice altceva insemana false
-			*/
 			if (!is_identifier(words[1])) {
 				printf("Error: %s is invalid identifier.\n", words[1]);
 				free(line);
@@ -605,214 +654,53 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				return result;
 			}
 		} else if (strcmp(words[0], "#endif") != 0) {
-			fprintf(f_out, "%s\n", copy_line);
+			/*
+				TODO: Daca am nevoie de un symbol ii cer valoarea cu get_symbol_value()
+			*/
+			/*
+
+				Parsez linia copy_line
+			*/
+
+			char *delm_ = " \t[]{}<>=+-*/%!&|^.,:;()";
+			char *final_line;
+
+
+			strcpy(line, copy_line);
+			split_line(line, words, &nr_words, delm_);
+			// if (nr_words == 0) {
+			// 	fprintf(f_out, "\n");
+			// 	continue;
+			// }
+
+
+			final_line = (char *)malloc(LINE_SIZE * sizeof(char));
+			if (!final_line) {
+				printf("Error: Can not alloc memory for \'final_line\' variable.\n");
+				free(line);
+				free(copy_line);
+				return -ENOMEM;
+			}
+
+
+			strcpy(final_line, "");
+
+			result = get_final_line(words, nr_words, copy_line, final_line);
+			if (result != SUCCESS) {
+				free(line);
+				free(copy_line);
+				return result;
+			}
+
+			fprintf(f_out, "%s\n", final_line);
+			free(final_line);
+			
 		}
 	}
 
 	free(line);
 	free(copy_line);
 
-	return SUCCESS;
-}
-
-void get_string(char *word, char words[][WORD_SIZE],
-	int nr_words, int *index)
-{
-	for (; *index < nr_words; ++*index) {
-		if (strchr(words[*index], '\"')) {
-			strcat(word, words[*index]);
-			break;
-		}
-		strcat(word, words[*index]);
-		strcat(word, " ");
-	}
-}
-
-int get_symbol_final_value(char *value, char *final_value)
-{
-	char words[LINE_WORDS][WORD_SIZE];
-	int nr_words;
-	int i, result;
-	void *val;
-	char *copy_val, *f_val;
-	char *delm = "\t ";
-
-	if (value[0] == '\0') {
-		final_value[0] = '\0';
-		return SUCCESS;
-	}
-
-	if (value[0] == '?') {
-		strcpy(final_value, value + 1);
-		return SUCCESS;
-	}
-
-	copy_val = (char *)malloc((strlen(value) + 1) * sizeof(char));
-	if (!copy_val) {
-		printf("Error: Can not alloc memory "
-			"for \'copy_val\' variable.\n");
-		return -ENOMEM;
-	}
-
-	strcpy(copy_val, value);
-
-	split_line(copy_val, words, &nr_words, delm);
-	if (nr_words == 0) {
-		final_value[0] = '\0';
-	}
-
-	for (i = 0; i < nr_words; ++i) {
-		if (strchr(words[i], '\"')) {
-			strcat(final_value, words[i]);
-			strcat(final_value, " ");
-			++i;
-			get_string(final_value, words, nr_words, &i);
-			strcat(final_value, " ");
-		} else if (is_identifier(words[i])) {
-			f_val = (char *)malloc(MAPPING_SIZE * sizeof(char));
-			if (!f_val) {
-				printf("Error: Can not alloc memory "
-					"for \'f_val\' variable.\n");
-				free(copy_val);
-				return -ENOMEM;
-			}
-			f_val[0] = '\0';
-
-			val = get(hash_table, (void *)words[i]);
-			if (!val) {
-				strcat(f_val, words[i]);
-			} else {
-				result = get_symbol_final_value(val, f_val);
-				if (result != SUCCESS) {
-					free(f_val);
-					free(copy_val);
-					return result;
-				}
-			}
-
-			strcat(final_value, f_val);
-			free(f_val);
-		} else {
-			strcat(final_value, words[i]);
-			strcat(final_value, " ");
-		}
-	}
-
-	free(copy_val);
-	return SUCCESS;
-}
-
-int get_symbols_final_value(void)
-{
-	int i;
-	ListNode *node;
-	Pair *pair;
-	void *value;
-	char *final_value;
-	int result;
-
-	for (i = 0; i < hash_table->size; ++i) {
-		node = hash_table->map[i]->head;
-		while (node != NULL) {
-			pair = (Pair *)node->value;
-			value = pair->value;
-
-			final_value = (char *)malloc(MAPPING_SIZE * sizeof(char));
-			if (!final_value) {
-				printf("Error: Can not alloc memory "
-					"for \'final_value\' variable.\n");
-				return -ENOMEM;
-			}
-
-			final_value[0] = '\0';
-
-			result = get_symbol_final_value((char *)value, final_value);
-			if (result != SUCCESS) {
-				free(final_value);
-				return result;
-			}
-
-			free(value);
-
-			result = put(hash_table, pair->key, (void *)final_value);
-			if (result != SUCCESS) {
-				free(final_value);
-				return result;
-			}
-
-			node = node->next;
-		}
-	}
-
-	return SUCCESS;
-}
-
-int file_preprocessing(FILE *f_in)
-{
-	char *line;
-	int len, i;
-	char words[LINE_WORDS][WORD_SIZE];
-	int nr_words;
-	char *final_line;
-	void *val;
-	char *delm = "\t ();";
-	char *occ;
-
-	line = (char *)malloc(LINE_SIZE * sizeof(char));
-	if (!line) {
-		printf("Error: Can not alloc memory for \'line\' variable.\n");
-		return -ENOMEM;
-	}
-
-	final_line = (char *)malloc(MAPPING_SIZE * sizeof(char));
-	if (!final_line) {
-		printf("Error: Can not alloc memory for \'final_line\' variable.\n");
-		return -ENOMEM;
-	}
-
-
-	while (fgets(line, LINE_SIZE, f_in) != NULL)  {
-		len = strlen(line);
-		if (line[len - 1] == '\n') {
-			line[len - 1] = '\0';
-		}
-
-		if (line[0] == '\0') {
-			continue;
-		}
-
-		split_line(line, words, &nr_words, delm);
-
-		final_line[0] = '\0';
-
-		for (i = 0; i < nr_words; ++i) {
-			occ = strchr(words[i], '\"');
-			if (occ) {
-				strcat(final_line, words[i]);
-				strcat(final_line, " ");
-				if (strchr(occ, '\"')) {
-					continue;
-				}
-				++i;
-				get_string(final_line, words, nr_words, &i);
-			} else if (is_identifier(words[i])) {
-				val = get(hash_table, (void *)words[i]);
-				if (!val) {
-					strcat(final_line, words[i]);
-				} else {
-					strcat(final_line, val);
-				}
-			} else {
-				strcat(final_line, words[i]);
-			}
-			strcat(final_line, " ");
-		}
-
-		fprintf(file_out, "%s\n", final_line);
-	}
-
-	free(line);
-	free(final_line);
 	return SUCCESS;
 }
 
@@ -841,6 +729,9 @@ int main(int argc, char **argv)
 		return result;
 	}
 
+	/*
+	NO NEED HELPER_FILE
+	*/
 	f_out_helper = fopen(HELPER_OUT_FILE, WR);
 	if (!f_out_helper) {
 		printf("Error: Can not open %s file.\n", HELPER_OUT_FILE);
@@ -855,31 +746,6 @@ int main(int argc, char **argv)
 	if (result != SUCCESS) {
 		free_memory();
 		close_out_helper_out_and_err_files(f_out_helper);
-		return result;
-	}
-
-	result = get_symbols_final_value();
-	if (result != SUCCESS) {
-		free_memory();
-		close_out_helper_out_and_err_files(f_out_helper);
-
-		return result;
-	}
-
-	result = fseek(f_out_helper, 0, SEEK_SET);
-	if (result) {
-		free_memory();
-		close_out_helper_out_and_err_files(f_out_helper);
-
-		printf("Error: can not move the cursor.\n");
-		return CURSOR_UNMOVED;
-	}
-
-	result = file_preprocessing(f_out_helper);
-	if (result != SUCCESS) {
-		free_memory();
-		close_out_helper_out_and_err_files(f_out_helper);
-
 		return result;
 	}
 
