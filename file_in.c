@@ -1,4 +1,8 @@
-#define ABC "10"
-#define BCD 20 + 4
-
-printf("%x\n", x);
+int main() {
+#if TEST
+	printf("True!\n");
+#else
+	printf("False!\n");
+#endif
+	return 0;
+}

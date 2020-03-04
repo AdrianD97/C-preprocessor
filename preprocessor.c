@@ -198,10 +198,11 @@ int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *fina
 
 	for (i = 0; i < nr_words; ++i) {
 		occ = strstr(occ, words[i]);
+		occ += 1;
 		strcpy(delms, "");
 		if (occ) {
 			pos = occ - line;
-			--pos;
+			pos -= 2;
 			if (pos >= 0) {
 				get_delms(delms, line, pos);
 			}
@@ -247,6 +248,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 	void *val;
 	Stack *stack;
 	int found;
+	char value_[MAPPING_SIZE];
 
 	line = (char *)malloc(LINE_SIZE * sizeof(char));
 	if (!line) {
@@ -349,7 +351,6 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free(copy_line);
 				return INVALID_IDENTIFIER;
 			}
-
 
 			val = get(hash_table, (void *)words[1]);
 			if (!val) {
@@ -472,7 +473,16 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 						return INVALID_VALUE;
 					}
 
-					if (((char*)val)[0] != '0') {
+					strcpy(value_, "");
+					result = get_symbol_value((char*)val, value_);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+						return result;
+					}
+
+					value_[strlen(value_) - 1] = '\0';
+					if (value_[0] != '0') {
 						process_lines = 1;
 					}
 				}
