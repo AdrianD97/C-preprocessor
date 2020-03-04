@@ -4,6 +4,12 @@
 #include "functions/hash_functions.h"
 #include "free_memory/free_memory.h"
 #include "directives/directives.h"
+/*
+	Vezi test 9
+	se inlocuiesc toate aparitiile pana la undef 
+	deci nasol, trebuie schimbata solutia cu fisier intermediar
+	FUCK
+*/
 
 int init(int argc, char **argv)
 {
