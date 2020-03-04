@@ -67,6 +67,7 @@ int get_symbol_value(char *value, char *final_value)
 			val = get(hash_table, (void *)words[i]);
 			if (!val) {
 				strcat(f_val, words[i]);
+				strcat(f_val, " ");
 			} else {
 				result = get_symbol_value(val, f_val);
 				if (result != SUCCESS) {

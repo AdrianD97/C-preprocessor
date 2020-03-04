@@ -99,6 +99,7 @@ int define_directive(FILE *f_in, FILE *f_out,
 
 			free(line);
 		}
+		word[--len - 1] = '\0';
 	}
 
 	value = (char *)malloc(len * sizeof(char));

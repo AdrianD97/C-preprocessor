@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <string.h>
+#define VAR1 0
 
-int main(int argc, char const *argv[]) {
-	char *p = "";
-	printf("%d\n", strlen(p));
-	return 0;
-}
+#if 10
+printf("Mihai\n");
+#elif 0
+printf("Nan\n");
+#else
+printf("Ok else imi convine\n");
+

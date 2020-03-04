@@ -7,14 +7,6 @@
 #include "symbols_values.h"
 #include "directives/directives.h"
 
-
-/*
-	Vezi test 9
-	se inlocuiesc toate aparitiile pana la undef 
-	deci nasol, trebuie schimbata solutia cu fisier intermediar
-	FUCK
-*/
-
 int init(int argc, char **argv)
 {
 	int result;
@@ -90,7 +82,7 @@ int open_in_and_out_files(void)
 	return SUCCESS;
 }
 
-void close_out_helper_out_and_err_files(FILE *f_out)
+void close_out_and_err_files(void)
 {
 	int result;
 
@@ -103,15 +95,6 @@ void close_out_helper_out_and_err_files(FILE *f_out)
 	if (result) {
 		printf("Error: Can not close %s file.\n", ERR_FILE);
 	}
-
-	result = fclose(f_out);
-	if (result) {
-		printf("Error: Can not close %s file.\n", HELPER_OUT_FILE);
-	}
-
-	if (remove(HELPER_OUT_FILE)) {
-		printf("Error: Can not remove %s file\n", HELPER_OUT_FILE);
-	}
 }
 
 int ignore_lines(FILE *f_in, FILE *f_out, char* line,
@@ -123,6 +106,7 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 	StackNode *node;
 	char *delm = "\t ";
 	*found = 0;
+	int end_of_file = 1;
 
 	while (fgets(line, LINE_SIZE, f_in) != NULL) {
 		len = strlen(line);
@@ -150,82 +134,100 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 			node = pop(stack);
 			free(node);
 			if (stack->length == 0) {
+				end_of_file = 0;
 				break;
 			}
 		} else if (!ign && (strcmp(words[0], "#else") == 0 || strcmp(words[0], "#elif") == 0)) {
-			result = fseek(f_in, -len, SEEK_CUR);
+			result = fseek(f_in, -(len + 1), SEEK_CUR);
 			*found = 1;
 			if (result) {
 				printf("Error: can not move the cursor.\n");
 				return CURSOR_UNMOVED;
 			}
+			end_of_file = 0;
 			break;
 		}
 	}
 
 	// TODO:
 	// Daca am citit tot fisierul si nu am gasit #endif => eroare
+	if (end_of_file) {
+		printf("Error: unterminated #if*\n");
+		return UNTERMINATED_IF;
+	}
 	return SUCCESS;
+}
+
+void get_delms(char *delms, char *line, int pos) {
+	char *str = " \t[]{}<>=+-*/%!&|^.,:;()\\";
+	char *ret;
+	char ch;
+	int j = 0;
+	int l, r;
+
+	ret = strchr(str, line[pos]);
+	
+	while (pos >= 0 && ret) {
+		delms[j++] = line[pos];
+		--pos;
+		if (pos >= 0) {
+			ret = strchr(str, line[pos]);
+		}
+	}
+
+	delms[j] = '\0';
+
+	l = 0;
+	r = j - 1;
+
+	while (l <= r) {
+		ch = delms[l];
+		delms[l] = delms[r];
+		delms[r] = ch;
+		++l;
+		--r;
+	}
 }
 
 int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *final_line)
 {
-	int i, j, k, result;
+	int i, pos, result;
 	char val[MAPPING_SIZE];
-	char *str = " \t[]{}<>=+-*/%!&|^.,:;()\\";
-	char new_line[LINE_SIZE];
-	char *occ;
-
-	strcpy(new_line, "");
+	char delms[50];
+	char *occ = line;
 
 	for (i = 0; i < nr_words; ++i) {
-		occ = strchr(words[i], '\"');
+		occ = strstr(occ, words[i]);
+		strcpy(delms, "");
 		if (occ) {
-			strcat(final_line, words[i]);
-			// strcat(final_line, " ");
-			if (strchr(occ, '\"')) {
-				continue;
+			pos = occ - line;
+			--pos;
+			if (pos >= 0) {
+				get_delms(delms, line, pos);
 			}
-			++i;
-			get_string(final_line, words, nr_words, &i);
-		} else if (is_var_type(words[i])) {
+
+			strcat(final_line, delms);
+		}
+
+		if (is_var_type(words[i])) {
 			strcat(final_line, words[i]);
-		} 
-		else if (is_identifier(words[i])) {
+		} else if (is_identifier(words[i])) {
 			strcpy(val, "");
 			result = get_symbol_value(words[i], val);
 			if (result != SUCCESS) {
 				return result;
 			}
+
+			val[strlen(val) - 1] = '\0';
 			strcat(final_line, val);
 		} else {
 			strcat(final_line, words[i]);
 		}
 	}
 
-	// TODO: Following code is wrong
-	/*
-		Trebuie reconstituita linia
-	*/
-	printf("Line = %s\n", line);
-	printf("final_line = %s\n", final_line);
-	
-	i = 0;
-	j = 0;
-	k = 0;
 
-	while (line[i] != '\0') {
-		if (strchr(str, line[i])) {
-			new_line[j++] = line[i];
-		} else {
-			new_line[j++] = final_line[k];
-			++k;
-		}
-		
-		++i;
-	}
-	strcpy(final_line, new_line);
-	printf("new_line = %s\n", new_line);
+	get_delms(delms, line, strlen(line) - 1);
+	strcat(final_line, delms);
 
 	return SUCCESS;
 }
@@ -380,6 +382,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
+						return result;
 					}
 				}
 			} else {
@@ -387,6 +390,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
+					return result;
 				}
 			}
 		} else if (strcmp(words[0], "#ifndef") == 0) {
@@ -430,6 +434,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
+						return result;
 					}
 				}
 			} else {
@@ -437,6 +442,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
+					return result;
 				}
 			}
 		} else if (strcmp(words[0], "#if") == 0) {
@@ -458,6 +464,13 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 			if (!process_lines && is_id) {
 				val = get(hash_table, (void *)words[1]);
 				if (val) {
+					if (((char*)val)[0] == '\0') {
+						printf("Error: #if with no expression.\n");
+						free(line);
+						free(copy_line);
+						return INVALID_VALUE;
+					}
+
 					if (((char*)val)[0] != '0') {
 						process_lines = 1;
 					}
@@ -495,6 +508,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
+						return result;
 					}
 				}
 			} else {
@@ -502,6 +516,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
+					return result;
 				}
 			}
 		} else if (strcmp(words[0], "#elif") == 0) {
@@ -536,6 +551,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
+						return result;
 					}
 				}
 			} else {
@@ -594,6 +610,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 						if (result != SUCCESS) {
 							free(line);
 							free(copy_line);
+							return result;
 						}
 					}
 				} else {
@@ -601,6 +618,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
+						return result;
 					}
 				}
 			}
@@ -635,6 +653,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
+					return result;
 				}
 			}
 				
@@ -654,25 +673,12 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				return result;
 			}
 		} else if (strcmp(words[0], "#endif") != 0) {
-			/*
-				TODO: Daca am nevoie de un symbol ii cer valoarea cu get_symbol_value()
-			*/
-			/*
-
-				Parsez linia copy_line
-			*/
 
 			char *delm_ = " \t[]{}<>=+-*/%!&|^.,:;()";
 			char *final_line;
 
-
 			strcpy(line, copy_line);
 			split_line(line, words, &nr_words, delm_);
-			// if (nr_words == 0) {
-			// 	fprintf(f_out, "\n");
-			// 	continue;
-			// }
-
 
 			final_line = (char *)malloc(LINE_SIZE * sizeof(char));
 			if (!final_line) {
@@ -681,10 +687,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free(copy_line);
 				return -ENOMEM;
 			}
-
-
-			strcpy(final_line, "");
-
+			
+			strcpy(final_line, "");			
 			result = get_final_line(words, nr_words, copy_line, final_line);
 			if (result != SUCCESS) {
 				free(line);
@@ -694,7 +698,6 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 			fprintf(f_out, "%s\n", final_line);
 			free(final_line);
-			
 		}
 	}
 
@@ -707,7 +710,6 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 int main(int argc, char **argv)
 {
 	int result;
-	FILE *f_out_helper;
 
 	err_file = fopen(ERR_FILE, O_WRITE);
 	if (!err_file) {
@@ -729,28 +731,16 @@ int main(int argc, char **argv)
 		return result;
 	}
 
-	/*
-	NO NEED HELPER_FILE
-	*/
-	f_out_helper = fopen(HELPER_OUT_FILE, WR);
-	if (!f_out_helper) {
-		printf("Error: Can not open %s file.\n", HELPER_OUT_FILE);
-		close_file(file_in);
-		close_file(file_out);
-		close_file(err_file);
-		return INVALID_FILE;
-	}
-
-	result = directives_preprocessing(file_in, f_out_helper, 0);
+	result = directives_preprocessing(file_in, file_out, 0);
 
 	if (result != SUCCESS) {
 		free_memory();
-		close_out_helper_out_and_err_files(f_out_helper);
+		close_out_and_err_files();
 		return result;
 	}
 
 	free_memory();
-	close_out_helper_out_and_err_files(f_out_helper);
+	close_out_and_err_files();
 
 	return 0;
 }

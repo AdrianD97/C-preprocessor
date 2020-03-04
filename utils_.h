@@ -20,12 +20,12 @@
 #define MAPPING_SIZE 100
 #define INVALID_IDENTIFIER 5
 #define KEY_EXISTS 6
-#define HELPER_OUT_FILE "f_out_helper.c"
 #define WR "w+"
 #define CURSOR_UNMOVED 7
 #define PATH_SIZE 256
 #define NR_HEADERS_FILES 100
 #define ERR_FILE "err_file.log"
+#define UNTERMINATED_IF 8
 
 typedef struct {
 	void *key;
