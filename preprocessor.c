@@ -105,8 +105,9 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 	int nr_words;
 	StackNode *node;
 	char *delm = "\t ";
-	*found = 0;
 	int end_of_file = 1;
+
+	*found = 0;
 
 	while (fgets(line, LINE_SIZE, f_in) != NULL) {
 		len = strlen(line);
