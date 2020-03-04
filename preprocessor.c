@@ -226,6 +226,7 @@ int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *fina
 	}
 
 
+	// printf("final_line = |%s|\n", final_line);
 	get_delms(delms, line, strlen(line) - 1);
 	strcat(final_line, delms);
 

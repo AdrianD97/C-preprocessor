@@ -20,6 +20,7 @@ int get_symbol_value(char *value, char *final_value)
 	int nr_words;
 	int i, result;
 	void *val;
+	char *ret;
 	char *copy_val, *f_val;
 	char *delm = "\t ";
 
@@ -30,6 +31,7 @@ int get_symbol_value(char *value, char *final_value)
 
 	if (value[0] == '?') {
 		strcpy(final_value, value + 1);
+		strcat(final_value, " ");
 		return SUCCESS;
 	}
 
@@ -48,12 +50,15 @@ int get_symbol_value(char *value, char *final_value)
 	}
 
 	for (i = 0; i < nr_words; ++i) {
-		if (strchr(words[i], '\"')) {
+		ret = strchr(words[i], '\"');
+		if (ret) {
 			strcat(final_value, words[i]);
 			strcat(final_value, " ");
-			++i;
-			get_string(final_value, words, nr_words, &i);
-			strcat(final_value, " ");
+			if (!strchr(ret + 1, '\"')) {
+				++i;
+				get_string(final_value, words, nr_words, &i);
+				strcat(final_value, " ");
+			}
 		} else if (is_identifier(words[i])) {
 			f_val = (char *)malloc(MAPPING_SIZE * sizeof(char));
 			if (!f_val) {
