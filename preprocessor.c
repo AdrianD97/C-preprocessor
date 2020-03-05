@@ -82,21 +82,6 @@ int open_in_and_out_files(void)
 	return SUCCESS;
 }
 
-void close_out_and_err_files(void)
-{
-	int result;
-
-	result = fclose(file_out);
-	if (result) {
-		printf("Error: Can not close %s file.\n", out_file_name);
-	}
-
-	result = fclose(err_file);
-	if (result) {
-		printf("Error: Can not close %s file.\n", ERR_FILE);
-	}
-}
-
 int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 	Stack *stack, int *found, int ign)
 {
@@ -721,23 +706,15 @@ int main(int argc, char **argv)
 {
 	int result;
 
-	err_file = fopen(ERR_FILE, O_WRITE);
-	if (!err_file) {
-		printf("Error: Can not create err_file.\n");
-		return -1;
-	}
-
 	result = init(argc, argv);
 	if (result != SUCCESS) {
 		free_memory();
-		close_file(err_file);
 		return result;
 	}
 
 	result = open_in_and_out_files();
 	if (result != SUCCESS) {
 		free_memory();
-		close_file(err_file);
 		return result;
 	}
 
@@ -745,12 +722,12 @@ int main(int argc, char **argv)
 
 	if (result != SUCCESS) {
 		free_memory();
-		close_out_and_err_files();
+		close_file(file_out);
 		return result;
 	}
 
 	free_memory();
-	close_out_and_err_files();
+	close_file(file_out);
 
 	return 0;
 }

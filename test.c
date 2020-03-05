@@ -1,12 +1,14 @@
-#ifndef _TEST38_H_
-#define _TEST38_H_
+#ifndef _DEBUG_H_
+#define _DEBUG_H_
 
-#ifdef CUSTOM_DBG
-#define DEBUG_STR CUSTOM_DBG
-#else
-#define DEBUG_STR "my debugging"
+#ifndef DEBUG_STR
+#define DEBUG_STR "debuging"
 #endif
 
-#include "debug.h"
+#if DEBUG
+#define debug fprintf(stderr, DEBUG_STR "\n")
+#else
+#define debug
+#endif
 
-#endif /* _TEST38_H_ */
+#endif /* _DEBUG_H_ */

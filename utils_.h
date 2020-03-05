@@ -24,7 +24,6 @@
 #define CURSOR_UNMOVED 7
 #define PATH_SIZE 256
 #define NR_HEADERS_FILES 100
-#define ERR_FILE "err_file.log"
 #define UNTERMINATED_IF 8
 
 typedef struct {
@@ -45,7 +44,6 @@ char in_file_name[NAME_SIZE];
 char out_file_name[NAME_SIZE];
 FILE *file_in;
 FILE *file_out;
-FILE *err_file;
 
 char *_if = "if*";
 
