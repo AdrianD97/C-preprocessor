@@ -87,9 +87,10 @@ int get(const HashTable *hash_table, void *key, void **value)
 {
 	int index = hash_table->hash(key) % hash_table->size;
 	ListNode *node;
-	*value = NULL;
 
 	Pair *pair, *pair_help;
+
+	*value = NULL;
 
 	pair = (Pair *)malloc(sizeof(Pair));
 	if (!pair)
