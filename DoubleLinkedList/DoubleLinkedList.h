@@ -91,9 +91,8 @@ ListNode *findElementByValue(const DoubleLinkedList *list, void *value)
 	int var;
 	ListNode *node1, *node2;
 
-	if (list->length == 0) {
+	if (list->length == 0)
 		return NULL;
-	}
 
 	var = list->length;
 
@@ -101,13 +100,11 @@ ListNode *findElementByValue(const DoubleLinkedList *list, void *value)
 	node2 = list->tail;
 
 	while (var > 0) {
-		if (list->compare(node1->value, value)) {
+		if (list->compare(node1->value, value))
 			return node1;
-		}
 
-		if (list->compare(node2->value, value)) {
+		if (list->compare(node2->value, value))
 			return node2;
-		}
 
 		node1 = node1->next;
 		node2 = node2->prev;
@@ -124,9 +121,8 @@ ListNode *removeItemFromDoubleLinkedList(DoubleLinkedList *list, void *value)
 	ListNode *node;
 
 	node = findElementByValue(list, value);
-	if (!node) {
+	if (!node)
 		return NULL;
-	}
 
 	if (list->length == 1) {
 		// a single item
@@ -138,11 +134,11 @@ ListNode *removeItemFromDoubleLinkedList(DoubleLinkedList *list, void *value)
 	} else {
 		// remove an ordinary node
 		node->prev->next = node->next;
-		if (node == list->tail) {
+		if (node == list->tail)
 			list->tail = node->prev;
-		} else {
+		else
 			node->next->prev = node->prev;
-		}
+
 	}
 
 	--list->length;
@@ -155,9 +151,8 @@ void freeDoubleLinkedListMemory(DoubleLinkedList *list)
 {
 	ListNode *node, *help_node;
 
-	if (!list || list->length == 0) {
+	if (!list || list->length == 0)
 		return;
-	}
 
 	node = list->head;
 	help_node = list->head;

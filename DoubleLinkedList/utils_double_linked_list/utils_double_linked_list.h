@@ -13,7 +13,7 @@ typedef struct {
 	ListNode *head;
 	ListNode *tail;
 	int length;
-	unsigned int (*compare)(void *, void *);
+	unsigned int (*compare)(void *arg1, void *arg2);
 } DoubleLinkedList;
 
 #endif // UTILS_DOUBLE_LINKED_LIST_H

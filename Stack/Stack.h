@@ -33,9 +33,8 @@ int push(Stack *stack, void *value)
 	StackNode *node;
 
 	// stack is full
-	if (stack->length == stack->size) {
+	if (stack->length == stack->size)
 		return FULL_STACK;
-	}
 
 	node = (StackNode *)malloc(sizeof(StackNode));
 	if (!node) {
@@ -56,9 +55,8 @@ StackNode *pop(Stack *stack)
 {
 	StackNode *node;
 
-	if (stack->length == 0) {
+	if (stack->length == 0)
 		return NULL;
-	}
 
 	node = stack->head;
 	stack->head = node->next;
@@ -73,9 +71,8 @@ void freeStackMemory(Stack *stack)
 {
 	StackNode *node, *help_node;
 
-	if (!stack || stack->length == 0) {
+	if (!stack || stack->length == 0)
 		return;
-	}
 
 	node = stack->head;
 	help_node = stack->head;

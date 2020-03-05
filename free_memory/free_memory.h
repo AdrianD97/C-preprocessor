@@ -46,9 +46,7 @@ void free_data_structures_content_memory(void)
 		node = hash_table->map[i]->head;
 		while (node != NULL) {
 			pair = (Pair *)node->value;
-			// TODO: only testing purpose
-			// printf("(%s, %s)\n", (char *)pair->key, (char *)pair->value);
-			/////////////////////
+
 			free(pair->key);
 			free(pair->value);
 
@@ -69,14 +67,14 @@ void close_file(FILE *f)
 	int result;
 
 	result = fclose(f);
-	if (result) {
+	if (result)
 		printf("Error: Can not close file.\n");
-	}
 }
 
 void close_files(void)
 {
 	StackNode *node;
+
 	while (files->length != 0) {
 		node = pop(files);
 		close_file((FILE *)node->value);

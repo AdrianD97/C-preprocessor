@@ -92,9 +92,8 @@ int define_directive(FILE *f_in, FILE *f_out,
 				define_helper(word, words_def,
 					nr_words_def, &len, 0, &is_multiline);
 
-				if (!is_multiline) {
+				if (!is_multiline)
 					break;
-				}
 			}
 
 			free(line);

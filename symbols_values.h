@@ -31,9 +31,8 @@ int get_symbol_value(char *value, char *final_value)
 	strcpy(copy_val, value);
 
 	split_line(copy_val, words, &nr_words, delm);
-	if (nr_words == 0) {
+	if (nr_words == 0)
 		final_value[0] = '\0';
-	}
 
 	for (i = 0; i < nr_words; ++i) {
 		if (is_identifier(words[i])) {

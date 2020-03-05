@@ -21,20 +21,17 @@ int init(int argc, char **argv)
 	// create an empty hash table
 	result = createEmptyHashTable(&hash_table, HASH_TABLE_SIZE,
 		string_hash, compare_pairs_with_string_key);
-	if (result != SUCCESS) {
+	if (result != SUCCESS)
 		return result;
-	}
 
 	// create an empty stack(will contains open header files)
 	result = createEmptyStack(&files, STACK_SIZE);
-	if (result != SUCCESS) {
+	if (result != SUCCESS)
 		return result;
-	}
 
 	result = parse_cmd_args(argc, argv);
-	if (result != SUCCESS) {
+	if (result != SUCCESS)
 		return result;
-	}
 
 	len = strlen(in_file_name);
 	path = (char *)malloc(len * sizeof(char));
@@ -64,9 +61,8 @@ int open_in_and_out_files(void)
 		}
 	}
 	result = push(files, (void *)file_in);
-	if (result != SUCCESS) {
+	if (result != SUCCESS)
 		return result;
-	}
 
 	if (strcmp(out_file_name, STDOUT) == 0) {
 		file_out = stdout;
@@ -82,7 +78,7 @@ int open_in_and_out_files(void)
 	return SUCCESS;
 }
 
-int ignore_lines(FILE *f_in, FILE *f_out, char* line,
+int ignore_lines(FILE *f_in, FILE *f_out, char *line,
 	Stack *stack, int *found, int ign)
 {
 	int len, result;
@@ -97,9 +93,9 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 	while (fgets(line, LINE_SIZE, f_in) != NULL) {
 		len = strlen(line);
 		if (line[len - 1] == '\n') {
-			if (len > 1 && line[len - 2] == '\r') {
+			if (len > 1 && line[len - 2] == '\r')
 				--len;
-			}
+
 			line[len - 1] = '\0';
 		}
 
@@ -113,9 +109,9 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 			strcmp(words[0], "#ifdef") == 0 ||
 			strcmp(words[0], "#ifndef") == 0) {
 			result = push(stack, (void *)_if);
-			if (result != SUCCESS) {
+			if (result != SUCCESS)
 				return result;
-			}
+
 		} else if (strcmp(words[0], "#endif") == 0) {
 			node = pop(stack);
 			free(node);
@@ -123,7 +119,8 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 				end_of_file = 0;
 				break;
 			}
-		} else if (!ign && (strcmp(words[0], "#else") == 0 || strcmp(words[0], "#elif") == 0)) {
+		} else if (!ign && (strcmp(words[0], "#else") == 0
+			|| strcmp(words[0], "#elif") == 0)) {
 			result = fseek(f_in, -(len + 1), SEEK_CUR);
 			*found = 1;
 			if (result) {
@@ -142,7 +139,8 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 	return SUCCESS;
 }
 
-void get_delms(char *delms, char *line, int pos) {
+void get_delms(char *delms, char *line, int pos)
+{
 	char *str = " \t[]{}<>=+-*/%!&|^.,:;()\\";
 	char *ret;
 	char ch;
@@ -150,13 +148,13 @@ void get_delms(char *delms, char *line, int pos) {
 	int l, r;
 
 	ret = strchr(str, line[pos]);
-	
+
 	while (pos >= 0 && ret) {
 		delms[j++] = line[pos];
 		--pos;
-		if (pos >= 0) {
+		if (pos >= 0)
 			ret = strchr(str, line[pos]);
-		}
+
 	}
 
 	delms[j] = '\0';
@@ -173,7 +171,8 @@ void get_delms(char *delms, char *line, int pos) {
 	}
 }
 
-int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *final_line)
+int get_final_line(char words[][WORD_SIZE], int nr_words,
+	char *line, char *final_line)
 {
 	int i, pos, result;
 	char val[MAPPING_SIZE];
@@ -187,9 +186,8 @@ int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *fina
 		if (occ) {
 			pos = occ - line;
 			pos -= 2;
-			if (pos >= 0) {
+			if (pos >= 0)
 				get_delms(delms, line, pos);
-			}
 
 			strcat(final_line, delms);
 		}
@@ -199,9 +197,8 @@ int get_final_line(char words[][WORD_SIZE], int nr_words, char *line, char *fina
 		} else if (is_identifier(words[i])) {
 			strcpy(val, "");
 			result = get_symbol_value(words[i], val);
-			if (result != SUCCESS) {
+			if (result != SUCCESS)
 				return result;
-			}
 
 			val[strlen(val) - 1] = '\0';
 			strcat(final_line, val);
@@ -250,9 +247,9 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 	while (fgets(line, LINE_SIZE, f_in) != NULL) {
 		len = strlen(line);
 		if (line[len - 1] == '\n') {
-			if (len > 1 && line[len - 2] == '\r') {
+			if (len > 1 && line[len - 2] == '\r')
 				--len;
-			}
+
 			line[len - 1] = '\0';
 		}
 	    strcpy(copy_line, line);
@@ -273,16 +270,17 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 			FILE *f;
 			int found = 0;
 
-			if (words[1][0] == '<') {
+			if (words[1][0] == '<')
 				continue;
-			}
+
 			len = strlen(words[1]);
 			words[1][len - 1] = '\0';
 			strcpy(file_name, words[1] + 1);
 
 			file_path = (char *)malloc(PATH_SIZE * sizeof(char));
 			if (!file_path) {
-				printf("Error: Can not alloc memory for \'file_path\' variable.\n");
+				printf("Error: Can not alloc "
+					"memory for \'file_path\' variable.\n");
 				free(line);
 				free(copy_line);
 				return -ENOMEM;
@@ -293,9 +291,9 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				strcpy(file_path, (char *)node->value);
 				len = strlen(file_path);
 
-				if (file_path[len - 1] != '/') {
+				if (file_path[len - 1] != '/')
 					strcat(file_path, "/");
-				}
+
 				strcat(file_path, file_name);
 
 				f = fopen(file_path, O_READ);
@@ -330,7 +328,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 			}
 		} else if (strcmp(words[0], "#ifdef") == 0) {
 			if (!is_identifier(words[1])) {
-				printf("Error: %s is invalid identifier.\n", words[1]);
+				printf("Error: %s is invalid "
+					"identifier.\n", words[1]);
 				free(line);
 				free(copy_line);
 				return INVALID_IDENTIFIER;
@@ -344,7 +343,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free(copy_line);
 					return result;
 				}
-				
+
 				result = push(stack, (void *)_if);
 				if (result != SUCCESS) {
 					free(line);
@@ -353,7 +352,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					return result;
 				}
 
-				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				result = ignore_lines(f_in, f_out,
+					line, stack, &found, 0);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -364,7 +364,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in, f_out, 0);
+					result = directives_preprocessing(f_in,
+						f_out, 0);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -372,7 +373,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 				}
 			} else {
-				result = directives_preprocessing(f_in, f_out, 1);
+				result = directives_preprocessing(f_in,
+					f_out, 1);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -381,7 +383,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 			}
 		} else if (strcmp(words[0], "#ifndef") == 0) {
 			if (!is_identifier(words[1])) {
-				printf("Error: %s is invalid identifier.\n", words[1]);
+				printf("Error: %s is invalid "
+					"identifier.\n", words[1]);
 				free(line);
 				free(copy_line);
 				return INVALID_IDENTIFIER;
@@ -396,7 +399,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free(copy_line);
 					return result;
 				}
-				
+
 				result = push(stack, (void *)_if);
 				if (result != SUCCESS) {
 					free(line);
@@ -405,7 +408,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					return result;
 				}
 
-				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				result = ignore_lines(f_in, f_out, line,
+					stack, &found, 0);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -416,7 +420,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in, f_out, 0);
+					result = directives_preprocessing(f_in,
+						f_out, 0);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -424,7 +429,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 				}
 			} else {
-				result = directives_preprocessing(f_in, f_out, 1);
+				result = directives_preprocessing(f_in,
+					f_out, 1);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -437,28 +443,31 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 			int process_lines = 0;
 
 			if (!is_n_lit && !is_id) {
-				printf("Error: %s is invalid identifier/number_literal.\n", words[1]);
+				printf("Error: %s is invalid "
+					"identifier/number_literal.\n",
+					words[1]);
 				free(line);
 				free(copy_line);
 				return INVALID_IDENTIFIER;
 			}
 
-			if (is_n_lit && words[1][0] != '0') {
+			if (is_n_lit && words[1][0] != '0')
 				process_lines = 1;
-			}
 
 			if (!process_lines && is_id) {
 				val = get(hash_table, (void *)words[1]);
 				if (val) {
-					if (((char*)val)[0] == '\0') {
-						printf("Error: #if with no expression.\n");
+					if (((char *)val)[0] == '\0') {
+						printf("Error: #if with "
+							"no expression.\n");
 						free(line);
 						free(copy_line);
 						return INVALID_VALUE;
 					}
 
 					strcpy(value_, "");
-					result = get_symbol_value((char*)val, value_);
+					result = get_symbol_value((char *)val,
+						value_);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -466,9 +475,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 
 					value_[strlen(value_) - 1] = '\0';
-					if (value_[0] != '0') {
+					if (value_[0] != '0')
 						process_lines = 1;
-					}
 				}
 			}
 
@@ -479,7 +487,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free(copy_line);
 					return result;
 				}
-				
+
 				result = push(stack, (void *)_if);
 				if (result != SUCCESS) {
 					free(line);
@@ -488,7 +496,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					return result;
 				}
 
-				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				result = ignore_lines(f_in,
+					f_out, line, stack, &found, 0);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -499,7 +508,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in, f_out, 0);
+					result = directives_preprocessing(f_in,
+						f_out, 0);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -507,7 +517,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 				}
 			} else {
-				result = directives_preprocessing(f_in, f_out, 1);
+				result = directives_preprocessing(f_in,
+					f_out, 1);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -522,7 +533,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free(copy_line);
 					return result;
 				}
-				
+
 				result = push(stack, (void *)_if);
 				if (result != SUCCESS) {
 					free(line);
@@ -531,7 +542,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					return result;
 				}
 
-				result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+				result = ignore_lines(f_in,
+					f_out, line, stack, &found, 0);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -542,7 +554,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in, f_out, 1);
+					result = directives_preprocessing(f_in,
+						f_out, 1);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -555,33 +568,32 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				int process_lines = 0;
 
 				if (!is_n_lit && !is_id) {
-					printf("Error: %s is invalid identifier/number_literal.\n", words[1]);
+					printf("Error: %s is invalid "
+						"identifier/number_literal.\n",
+						words[1]);
 					free(line);
 					free(copy_line);
 					return INVALID_IDENTIFIER;
 				}
 
-				if (is_n_lit && words[1][0] != '0') {
+				if (is_n_lit && words[1][0] != '0')
 					process_lines = 1;
-				}
 
 				if (!process_lines && is_id) {
 					val = get(hash_table, (void *)words[1]);
-					if (val) {
-						if (((char*)val)[0] != '0') {
-							process_lines = 1;
-						}
-					}
+					if (val && ((char *)val)[0] != '0')
+						process_lines = 1;
 				}
 
 				if (!process_lines) {
-					result = createEmptyStack(&stack, STACK_SIZE);
+					result = createEmptyStack(&stack,
+						STACK_SIZE);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
 						return result;
 					}
-					
+
 					result = push(stack, (void *)_if);
 					if (result != SUCCESS) {
 						free(line);
@@ -590,7 +602,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 						return result;
 					}
 
-					result = ignore_lines(f_in, f_out, line, stack, &found, 0);
+					result = ignore_lines(f_in, f_out,
+						line, stack, &found, 0);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -601,7 +614,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free_stack_memory(&stack);
 
 					if (found) {
-						result = directives_preprocessing(f_in, f_out, 0);
+						result = directives_preprocessing(
+								f_in, f_out, 0);
 						if (result != SUCCESS) {
 							free(line);
 							free(copy_line);
@@ -609,7 +623,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 						}
 					}
 				} else {
-					result = directives_preprocessing(f_in, f_out, 1);
+					result = directives_preprocessing(f_in,
+						f_out, 1);
 					if (result != SUCCESS) {
 						free(line);
 						free(copy_line);
@@ -625,7 +640,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free(copy_line);
 					return result;
 				}
-				
+
 				result = push(stack, (void *)_if);
 				if (result != SUCCESS) {
 					free(line);
@@ -634,7 +649,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					return result;
 				}
 
-				result = ignore_lines(f_in, f_out, line, stack, &found, 1);
+				result = ignore_lines(f_in, f_out,
+					line, stack, &found, 1);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
@@ -644,17 +660,19 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 				free_stack_memory(&stack);
 			} else {
-				result = directives_preprocessing(f_in, f_out, 0);
+				result = directives_preprocessing(f_in,
+					f_out, 0);
 				if (result != SUCCESS) {
 					free(line);
 					free(copy_line);
 					return result;
 				}
 			}
-				
+
 		} else if (strcmp(words[0], "#undef") == 0) {
 			if (!is_identifier(words[1])) {
-				printf("Error: %s is invalid identifier.\n", words[1]);
+				printf("Error: %s is invalid "
+					"identifier.\n", words[1]);
 				free(line);
 				free(copy_line);
 				return INVALID_IDENTIFIER;
@@ -662,7 +680,8 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 			result = erase(hash_table, (void *)words[1]);
 			if (result != SUCCESS) {
-				printf("Error: Can not remove %s identifier\n", words[1]);
+				printf("Error: Can not remove "
+					"%s identifier\n", words[1]);
 				free(line);
 				free(copy_line);
 				return result;
@@ -677,14 +696,16 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 			final_line = (char *)malloc(LINE_SIZE * sizeof(char));
 			if (!final_line) {
-				printf("Error: Can not alloc memory for \'final_line\' variable.\n");
+				printf("Error: Can not alloc "
+					"memory for \'final_line\' variable.\n");
 				free(line);
 				free(copy_line);
 				return -ENOMEM;
 			}
-			
-			strcpy(final_line, "");			
-			result = get_final_line(words, nr_words, copy_line, final_line);
+
+			strcpy(final_line, "");
+			result = get_final_line(words, nr_words,
+				copy_line, final_line);
 			if (result != SUCCESS) {
 				free(line);
 				free(copy_line);

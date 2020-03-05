@@ -26,18 +26,20 @@ int createEmptyHashTable(HashTable **hash_table, int size,
 
 	(*hash_table)->size = size;
 	(*hash_table)->hash = hash;
-	(*hash_table)->map = (DoubleLinkedList **)malloc(size * sizeof(DoubleLinkedList *));
+	(*hash_table)->map = (DoubleLinkedList **)malloc(size
+		* sizeof(DoubleLinkedList *));
 
 	if (!(*hash_table)->map) {
-		printf("Error: Can not alloc memory for hash_table internal map.\n");
+		printf("Error: Can not alloc "
+			"memory for hash_table internal map.\n");
 		return -ENOMEM;
 	}
 
 	for (i = 0; i < size; ++i) {
-		result = createEmptyDoubleLinkedList(&((*hash_table)->map[i]), compare);
-		if (result != SUCCESS) {
+		result = createEmptyDoubleLinkedList(
+			&((*hash_table)->map[i]), compare);
+		if (result != SUCCESS)
 			return result;
-		}
 	}
 
 	return SUCCESS;
@@ -62,12 +64,14 @@ int put(HashTable *hash_table, void *key, void *value)
 	node = findElementByValue(hash_table->map[index], (void *)pair);
 	if (node) {
 		Pair *help = (Pair *)node->value;
+
 		help->value = value;
 		free(pair);
 
 		result = SUCCESS;
 	} else {
-		result = addItemToDoubleLinkedList(hash_table->map[index], (void *)pair);
+		result = addItemToDoubleLinkedList(
+			hash_table->map[index], (void *)pair);
 	}
 
 	return result;
@@ -88,9 +92,8 @@ void *get(const HashTable *hash_table, void *key)
 	node = findElementByValue(hash_table->map[index], (void *)pair);
 
 	free(pair);
-	if (!node) {
+	if (!node)
 		return NULL;
-	}
 
 	pair_help = (Pair *)node->value;
 
@@ -112,7 +115,8 @@ int erase(HashTable *hash_table, void *key)
 	pair->key = key;
 	pair->value = NULL;
 
-	node = removeItemFromDoubleLinkedList(hash_table->map[index], (void *)pair);
+	node = removeItemFromDoubleLinkedList(
+		hash_table->map[index], (void *)pair);
 	if (node) {
 		help_pair = (Pair *)node->value;
 		free(help_pair->key);
@@ -132,9 +136,9 @@ void freeHashTableMemory(HashTable *hash_table)
 	unsigned int i;
 	ListNode *node;
 
-	if (!hash_table) {
+	if (!hash_table)
 		return;
-	}
+
 	for (i = 0; i < hash_table->size; ++i) {
 		node = hash_table->map[i]->head;
 		while (node != NULL) {

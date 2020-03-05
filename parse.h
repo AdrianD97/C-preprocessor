@@ -23,9 +23,8 @@ int parse_arg(char *arg)
 
 	token = strtok(NULL, "=");
 
-	if (token) {
+	if (token)
 		len = strlen(token) + 2;
-	}
 
 	value = (char *)malloc(len * sizeof(char));
 	if (!value) {
@@ -83,41 +82,38 @@ int parse_cmd_args(int argc, char **argv)
 
 	while (index != argc) {
 		if (argv[index][0] == '-' && argv[index][1] == 'D') {
-			if (argv[index][2] == '\0') {
+			if (argv[index][2] == '\0')
 				result = parse_arg(argv[++index]);
-			} else {
+			else
 				result = parse_arg(argv[index] + 2);
-			}
 
-			if (result != SUCCESS) {
+			if (result != SUCCESS)
 				return result;
-			}
+
 		} else if (argv[index][0] == '-' && argv[index][1] == 'I') {
-			if (argv[index][2] == '\0') {
+			if (argv[index][2] == '\0')
 				len = strlen(argv[index + 1]) + 1;
-			} else {
+			else
 				len = strlen(argv[index]) - 1;
-			}
 
 			path = (char *)malloc(len * sizeof(char));
 			if (!path) {
-				printf("Error: An error occured when try to parse cmd args.\n");
+				printf("Error: An error occured "
+					"when try to parse cmd args.\n");
 				return -ENOMEM;
 			}
 
-			if (argv[index][2] == '\0') {
+			if (argv[index][2] == '\0')
 				strcpy(path, argv[++index]);
-			} else {
+			else
 				strcpy(path, argv[index] + 2);
-			}
 
 			result = addItemToDoubleLinkedList(list, (void *)path);
-			if (result != SUCCESS) {
+			if (result != SUCCESS)
 				return result;
-			}
-		} else {
+
+		} else
 			break;
-		}
 
 		++index;
 	}
@@ -127,9 +123,9 @@ int parse_cmd_args(int argc, char **argv)
 	if (index < argc) {
 		if (argv[index][0] == '-' && argv[index][1] == 'o') {
 			result = get_out_file_names(argc, &index, argv);
-			if (result != SUCCESS) {
+			if (result != SUCCESS)
 				return result;
-			}
+
 		} else {
 			strcpy(in_file_name, argv[index]);
 			++index;
@@ -137,14 +133,16 @@ int parse_cmd_args(int argc, char **argv)
 				if (argv[index][0] != '-') {
 					strcpy(out_file_name, argv[index]);
 					if (index + 1 < argc) {
-						printf("Error: Too many output files.\n");
+						printf("Error: Too many output "
+							"files.\n");
 						return INVALID_NR_PARAMS;
 					}
 				} else {
-					result = get_out_file_names(argc, &index, argv);
-					if (result != SUCCESS) {
+					result = get_out_file_names(argc,
+						&index, argv);
+					if (result != SUCCESS)
 						return result;
-					}
+
 				}
 			}
 		}
@@ -183,9 +181,8 @@ void split_line(char *line, char words[][WORD_SIZE], int *nr_words, char *delm)
 	*nr_words = 0;
 
 	ret = strtok(line, delm);
-	if (!ret) {
+	if (!ret)
 		return;
-	}
 
 	while (ret) {
 		strcpy(words[*nr_words], ret);

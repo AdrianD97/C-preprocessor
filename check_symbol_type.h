@@ -48,9 +48,9 @@ int is_number_literal(char *str)
 
 	while (str[i] != '\0') {
 		res = str[i] - '0';
-		if (res < 0 || res > 9) {
+		if (res < 0 || res > 9)
 			return 0;
-		}
+
 		++i;
 	}
 
