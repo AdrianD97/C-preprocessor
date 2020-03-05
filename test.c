@@ -1,9 +1,12 @@
-#define VAR1 0
+#ifndef _TEST38_H_
+#define _TEST38_H_
 
-#if 10
-printf("Mihai\n");
-#elif 0
-printf("Nan\n");
+#ifdef CUSTOM_DBG
+#define DEBUG_STR CUSTOM_DBG
 #else
-printf("Ok else imi convine\n");
+#define DEBUG_STR "my debugging"
+#endif
 
+#include "debug.h"
+
+#endif /* _TEST38_H_ */

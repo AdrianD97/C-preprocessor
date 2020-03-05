@@ -150,8 +150,6 @@ int ignore_lines(FILE *f_in, FILE *f_out, char* line,
 		}
 	}
 
-	// TODO:
-	// Daca am citit tot fisierul si nu am gasit #endif => eroare
 	if (end_of_file) {
 		printf("Error: unterminated #if*\n");
 		return UNTERMINATED_IF;

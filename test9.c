@@ -1,10 +1,8 @@
-#define ABC "10"
-#define BCD 20 + 4
+#include "test38.h"
 
-int main() {
-    printf("%s\n", ABC);
-    int x = BCD + 20;
-    printf("%x\n", x);
-
-    return 0;
+int main()
+{
+	debug;
+	printf("%s\n", H_38);
+	return 0;
 }

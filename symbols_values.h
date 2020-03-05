@@ -1,26 +1,12 @@
 #ifndef SYMBOLS_VALUES_H
 #define SYMBOLS_VALUES_H
 
-void get_string(char *word, char words[][WORD_SIZE],
-	int nr_words, int *index)
-{
-	for (; *index < nr_words; ++*index) {
-		if (strchr(words[*index], '\"')) {
-			strcat(word, words[*index]);
-			break;
-		}
-		strcat(word, words[*index]);
-		// strcat(word, " ");
-	}
-}
-
 int get_symbol_value(char *value, char *final_value)
 {
 	char words[LINE_WORDS][WORD_SIZE];
 	int nr_words;
 	int i, result;
 	void *val;
-	char *ret;
 	char *copy_val, *f_val;
 	char *delm = "\t ";
 
@@ -50,16 +36,7 @@ int get_symbol_value(char *value, char *final_value)
 	}
 
 	for (i = 0; i < nr_words; ++i) {
-		ret = strchr(words[i], '\"');
-		if (ret) {
-			strcat(final_value, words[i]);
-			strcat(final_value, " ");
-			if (!strchr(ret + 1, '\"')) {
-				++i;
-				get_string(final_value, words, nr_words, &i);
-				strcat(final_value, " ");
-			}
-		} else if (is_identifier(words[i])) {
+		if (is_identifier(words[i])) {
 			f_val = (char *)malloc(MAPPING_SIZE * sizeof(char));
 			if (!f_val) {
 				printf("Error: Can not alloc memory "
