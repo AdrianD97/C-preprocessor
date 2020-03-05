@@ -42,23 +42,27 @@ void free_data_structures_content_memory(void)
 	Pair *pair;
 
 	// free hash table data
-	for (i = 0; i < hash_table->size; ++i) {
-		node = hash_table->map[i]->head;
-		while (node != NULL) {
-			pair = (Pair *)node->value;
+	if (hash_table && hash_table->map)
+		for (i = 0; i < hash_table->size; ++i) {
+			if (hash_table->map[i]) {
+				node = hash_table->map[i]->head;
+				while (node != NULL) {
+					pair = (Pair *)node->value;
 
-			free(pair->key);
-			free(pair->value);
-
-			node = node->next;
+					free(pair->key);
+					free(pair->value);
+					node = node->next;
+				}
+			}
 		}
-	}
 
 	// free list data
-	node = list->head;
-	while (node != NULL) {
-		free(node->value);
-		node = node->next;
+	if (list) {
+		node = list->head;
+		while (node != NULL) {
+			free(node->value);
+			node = node->next;
+		}
 	}
 }
 
@@ -75,9 +79,13 @@ void close_files(void)
 {
 	StackNode *node;
 
+	if (!files)
+		return;
+
 	while (files->length != 0) {
 		node = pop(files);
 		close_file((FILE *)node->value);
+
 		free(node);
 	}
 }

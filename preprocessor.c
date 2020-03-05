@@ -13,6 +13,12 @@ int init(int argc, char **argv)
 	char *path;
 	int len;
 
+	list = NULL;
+	hash_table = NULL;
+	files = NULL;
+	file_in = NULL;
+	file_out = NULL;
+
 	// create an empty list
 	result = createEmptyDoubleLinkedList(&list, compare_strings);
 	if (result != SUCCESS)
@@ -36,7 +42,7 @@ int init(int argc, char **argv)
 	len = strlen(in_file_name);
 	path = (char *)malloc(len * sizeof(char));
 	if (!path) {
-		printf("Error: Can not get file input path.\n");
+		fprintf(stderr, "Error: Can not get file input path.\n");
 		return -ENOMEM;
 	}
 
@@ -207,15 +213,13 @@ int get_final_line(char words[][WORD_SIZE], int nr_words,
 		}
 	}
 
-
-	// printf("final_line = |%s|\n", final_line);
 	get_delms(delms, line, strlen(line) - 1);
 	strcat(final_line, delms);
 
 	return SUCCESS;
 }
 
-int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
+int directives_prepro(FILE *f_in, FILE *f_out, int ign)
 {
 	int result;
 	char *line, *copy_line;
@@ -233,13 +237,14 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 	line = (char *)malloc(LINE_SIZE * sizeof(char));
 	if (!line) {
-		printf("Error: Can not alloc memory for \'line\' variable.\n");
+		fprintf(stderr, "Error: Can not alloc "
+			"memory for \'line\' variable.\n");
 		return -ENOMEM;
 	}
 
 	copy_line = (char *)malloc(LINE_SIZE * sizeof(char));
 	if (!copy_line) {
-		printf("Error: Can not alloc memory "
+		fprintf(stderr, "Error: Can not alloc memory "
 			"for \'copy_line\' variable.\n");
 		return -ENOMEM;
 	}
@@ -279,7 +284,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 			file_path = (char *)malloc(PATH_SIZE * sizeof(char));
 			if (!file_path) {
-				printf("Error: Can not alloc "
+				fprintf(stderr, "Error: Can not alloc "
 					"memory for \'file_path\' variable.\n");
 				free(line);
 				free(copy_line);
@@ -319,7 +324,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free(copy_line);
 				return INVALID_FILE;
 			}
-			result = directives_preprocessing(f, f_out, 0);
+			result = directives_prepro(f, f_out, 0);
 
 			if (result != SUCCESS) {
 				free(line);
@@ -335,7 +340,13 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				return INVALID_IDENTIFIER;
 			}
 
-			val = get(hash_table, (void *)words[1]);
+			result = get(hash_table, (void *)words[1], &val);
+			if (result != SUCCESS) {
+				free(line);
+				free(copy_line);
+				return result;
+			}
+
 			if (!val) {
 				result = createEmptyStack(&stack, STACK_SIZE);
 				if (result != SUCCESS) {
@@ -364,7 +375,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in,
+					result = directives_prepro(f_in,
 						f_out, 0);
 					if (result != SUCCESS) {
 						free(line);
@@ -373,7 +384,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 				}
 			} else {
-				result = directives_preprocessing(f_in,
+				result = directives_prepro(f_in,
 					f_out, 1);
 				if (result != SUCCESS) {
 					free(line);
@@ -390,8 +401,13 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				return INVALID_IDENTIFIER;
 			}
 
+			result = get(hash_table, (void *)words[1], &val);
+			if (result != SUCCESS) {
+				free(line);
+				free(copy_line);
+				return result;
+			}
 
-			val = get(hash_table, (void *)words[1]);
 			if (val) {
 				result = createEmptyStack(&stack, STACK_SIZE);
 				if (result != SUCCESS) {
@@ -420,7 +436,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in,
+					result = directives_prepro(f_in,
 						f_out, 0);
 					if (result != SUCCESS) {
 						free(line);
@@ -429,7 +445,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 				}
 			} else {
-				result = directives_preprocessing(f_in,
+				result = directives_prepro(f_in,
 					f_out, 1);
 				if (result != SUCCESS) {
 					free(line);
@@ -455,7 +471,14 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				process_lines = 1;
 
 			if (!process_lines && is_id) {
-				val = get(hash_table, (void *)words[1]);
+				result = get(hash_table,
+					(void *)words[1], &val);
+				if (result != SUCCESS) {
+					free(line);
+					free(copy_line);
+					return result;
+				}
+
 				if (val) {
 					if (((char *)val)[0] == '\0') {
 						printf("Error: #if with "
@@ -508,7 +531,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in,
+					result = directives_prepro(f_in,
 						f_out, 0);
 					if (result != SUCCESS) {
 						free(line);
@@ -517,7 +540,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					}
 				}
 			} else {
-				result = directives_preprocessing(f_in,
+				result = directives_prepro(f_in,
 					f_out, 1);
 				if (result != SUCCESS) {
 					free(line);
@@ -554,7 +577,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 				free_stack_memory(&stack);
 
 				if (found) {
-					result = directives_preprocessing(f_in,
+					result = directives_prepro(f_in,
 						f_out, 1);
 					if (result != SUCCESS) {
 						free(line);
@@ -580,12 +603,21 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					process_lines = 1;
 
 				if (!process_lines && is_id) {
-					val = get(hash_table, (void *)words[1]);
+					result = get(hash_table,
+						(void *)words[1], &val);
+					if (result != SUCCESS) {
+						free(line);
+						free(copy_line);
+						return result;
+					}
+
 					if (val && ((char *)val)[0] != '0')
 						process_lines = 1;
 				}
 
 				if (!process_lines) {
+					int insucc_ = 0;
+
 					result = createEmptyStack(&stack,
 						STACK_SIZE);
 					if (result != SUCCESS) {
@@ -614,16 +646,20 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 					free_stack_memory(&stack);
 
 					if (found) {
-						result = directives_preprocessing(
+						result = directives_prepro(
 								f_in, f_out, 0);
-						if (result != SUCCESS) {
-							free(line);
-							free(copy_line);
-							return result;
-						}
+
+						insucc_ = (result != SUCCESS)
+							? 1 : 0;
+					}
+
+					if (insucc_) {
+						free(line);
+						free(copy_line);
+						return result;
 					}
 				} else {
-					result = directives_preprocessing(f_in,
+					result = directives_prepro(f_in,
 						f_out, 1);
 					if (result != SUCCESS) {
 						free(line);
@@ -660,7 +696,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 				free_stack_memory(&stack);
 			} else {
-				result = directives_preprocessing(f_in,
+				result = directives_prepro(f_in,
 					f_out, 0);
 				if (result != SUCCESS) {
 					free(line);
@@ -696,7 +732,7 @@ int directives_preprocessing(FILE *f_in, FILE *f_out, int ign)
 
 			final_line = (char *)malloc(LINE_SIZE * sizeof(char));
 			if (!final_line) {
-				printf("Error: Can not alloc "
+				fprintf(stderr, "Error: Can not alloc "
 					"memory for \'final_line\' variable.\n");
 				free(line);
 				free(copy_line);
@@ -739,7 +775,7 @@ int main(int argc, char **argv)
 		return result;
 	}
 
-	result = directives_preprocessing(file_in, file_out, 0);
+	result = directives_prepro(file_in, file_out, 0);
 
 	if (result != SUCCESS) {
 		free_memory();

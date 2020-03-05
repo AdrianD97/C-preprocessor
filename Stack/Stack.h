@@ -16,7 +16,8 @@ int createEmptyStack(Stack **stack, int size)
 
 	*stack = (Stack *)malloc(sizeof(Stack));
 	if (!(*stack)) {
-		printf("Error: Can not alloc memory for stack object.\n");
+		fprintf(stderr, "Error: Can not alloc "
+			"memory for stack object.\n");
 		return -ENOMEM;
 	}
 
@@ -38,7 +39,7 @@ int push(Stack *stack, void *value)
 
 	node = (StackNode *)malloc(sizeof(StackNode));
 	if (!node) {
-		printf("Error: Can not add a new item to stack.\n");
+		fprintf(stderr, "Error: Can not add a new item to stack.\n");
 		return -ENOMEM;
 	}
 	node->value = value;

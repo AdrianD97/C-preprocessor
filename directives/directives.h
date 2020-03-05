@@ -109,7 +109,12 @@ int define_directive(FILE *f_in, FILE *f_out,
 	}
 
 	strcpy(value, word);
-	val = get(hash_table, (void *)symbol);
+	result = get(hash_table, (void *)symbol, &val);
+	if (result != SUCCESS) {
+		free(symbol);
+		free(value);
+		return result;
+	}
 
 	result = put(hash_table, (void *)symbol, (void *)value);
 	if (result != SUCCESS) {

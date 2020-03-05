@@ -18,7 +18,8 @@ int createEmptyDoubleLinkedList(DoubleLinkedList **list,
 	*list = (DoubleLinkedList *)malloc(sizeof(DoubleLinkedList));
 
 	if (!(*list)) {
-		printf("Error: Can not alloc memory for list object.\n");
+		fprintf(stderr, "Error: Can not alloc "
+			"memory for list object.\n");
 		return -ENOMEM;
 	}
 
@@ -36,7 +37,7 @@ int addItemToDoubleLinkedList(DoubleLinkedList *list, void *value)
 
 	node = (ListNode *)malloc(sizeof(ListNode));
 	if (!node) {
-		printf("Error: Can not add a new ietm to list.\n");
+		fprintf(stderr, "Error: Can not add a new ietm to list.\n");
 		return -ENOMEM;
 	}
 
@@ -64,7 +65,8 @@ int addItemToBeginningOfTheDoubleLinkedList(DoubleLinkedList *list, void *value)
 
 	node = (ListNode *)malloc(sizeof(ListNode));
 	if (!node) {
-		printf("Error: Can not add a new ietm to list.\n");
+		fprintf(stderr, "Error: Can not add a "
+			"new item to beginning of the list.\n");
 		return -ENOMEM;
 	}
 

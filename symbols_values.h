@@ -45,12 +45,17 @@ int get_symbol_value(char *value, char *final_value)
 			}
 			f_val[0] = '\0';
 
-			val = get(hash_table, (void *)words[i]);
+			result = get(hash_table, (void *)words[i], &val);
+			if (result != SUCCESS) {
+				free(copy_val);
+				return result;
+			}
+
 			if (!val) {
 				strcat(f_val, words[i]);
 				strcat(f_val, " ");
 			} else {
-				result = get_symbol_value(val, f_val);
+				result = get_symbol_value((char *)val, f_val);
 				if (result != SUCCESS) {
 					free(f_val);
 					free(copy_val);

@@ -15,10 +15,9 @@ int parse_arg(char *arg)
 	token = strtok(arg, "=");
 
 	symbol = (char *)malloc((strlen(token) + 1) * sizeof(char));
-	if (!symbol) {
-		printf("Error: An error occured when try to parse cmd args.\n");
+	if (!symbol)
 		return -ENOMEM;
-	}
+
 	strcpy(symbol, token);
 
 	token = strtok(NULL, "=");
@@ -28,7 +27,7 @@ int parse_arg(char *arg)
 
 	value = (char *)malloc(len * sizeof(char));
 	if (!value) {
-		printf("Error: An error occured when try to parse cmd args.\n");
+		free(symbol);
 		return -ENOMEM;
 	}
 
@@ -39,7 +38,12 @@ int parse_arg(char *arg)
 		strcat(value, token);
 	}
 
-	val = get(hash_table, (void *)symbol);
+	result = get(hash_table, (void *)symbol, &val);
+	if (result != SUCCESS) {
+		free(symbol);
+		free(value);
+		return result;
+	}
 
 	result = put(hash_table, (void *)symbol, (void *)value);
 	if (result != SUCCESS) {
@@ -87,8 +91,10 @@ int parse_cmd_args(int argc, char **argv)
 			else
 				result = parse_arg(argv[index] + 2);
 
-			if (result != SUCCESS)
+			if (result != SUCCESS) {
+				fprintf(stderr, "Can not parse -D params.\n");
 				return result;
+			}
 
 		} else if (argv[index][0] == '-' && argv[index][1] == 'I') {
 			if (argv[index][2] == '\0')
@@ -97,11 +103,8 @@ int parse_cmd_args(int argc, char **argv)
 				len = strlen(argv[index]) - 1;
 
 			path = (char *)malloc(len * sizeof(char));
-			if (!path) {
-				printf("Error: An error occured "
-					"when try to parse cmd args.\n");
+			if (!path)
 				return -ENOMEM;
-			}
 
 			if (argv[index][2] == '\0')
 				strcpy(path, argv[++index]);
@@ -109,8 +112,10 @@ int parse_cmd_args(int argc, char **argv)
 				strcpy(path, argv[index] + 2);
 
 			result = addItemToDoubleLinkedList(list, (void *)path);
-			if (result != SUCCESS)
+			if (result != SUCCESS) {
+				free(path);
 				return result;
+			}
 
 		} else
 			break;
