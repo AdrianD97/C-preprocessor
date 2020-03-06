@@ -1,0 +1,28 @@
+Nume: Ștefan Adrian-Daniel
+Grupa: 334CA
+
+Tema 1 SO - Multi-platform Development
+
+Organizare.
+Pentru implementarea acestei teme 'cancer' (Imi cer mii de euro, dar nu am gasit un alt cuvant pentru a o descrie) am implementat 3 structuri de date generice: Hashtable, Stack, DoubleLinkedList. Implementarea acestor structuri se gaseste in folderele cu acelasi nume al fiecarei structuri.
+Am implementat toate cerintele temei. Acum trebuie sa fiu sincer: as fi putut gasi o solutie mult mai eficienta si mai bine structurata, dar lipsa de timp (plm, dar mai am si alte materii la care trebuie sa merg cel putin la laborator; trebuie sa mai dorm si eu, pentru ca organismul are nevoie de odihna; etc.) m-a impiedicat sa gasesc solutia ideala. Tinand cont de astea as avea o intrebare: cel care a propus tema, a crezut ca noi in acele doua saptamani dedicate temei vom lucra doar la tema? Intreb, deoarece, eu sunt de parere ca aceasta tema pentru a putea fi implementata eficient si cu o organizare a codului care sa demonstreze unui angajator ca avem habar sa lucram la un proiect(tema foarte interesanta, a carei dificultate o incadreaza, strict parerea mea, in aceeasi categorie cu un feature complex pentru un proiect intr-o companie), necesita cel putin un sprint(doua saptamani in care sa lucrezi minim 7-8 ore pe zi). So...cred ca m-am plans destul, sa trecem la implementare.
+
+Implementare.
+Implementarea presupune doua etape importante:
+1. partea de initializare, in care se parseaza parametrii primiti in linia de comanda, se instantieaza structurile necesare: hashtable(sa nu uit, hashtable se foloseste in implementarea sa de implementarea listei dublu inlantuite) pentru pastrarea perechilor (key, value), unde key este simbolul definit printr-un #define si value valorea asociata acelui simbol; o lista dublu inlantuita in care retin calea catre directoarele(in ordinea in care au fost furnizate) in care trebuie sa caut fisierele introduse cu #include; o stiva in care retin fisierele deschise(introduse cu #include). Probabil te intrebi de ce naiba am folosit o stiva si nu o lista. Pai, solutia initiala inchidea fiecare fisier dupa ce il parsam, dar am renuntat la inchiderea fiseirului dupa ce il parsam(le inchid pe toate la sfarsit, ineficient, dar merge :))  ), dar nu am mai schimbat si structura in care retineam aceste fisiere.
+2. partea de parsare a fisierului care presupune parsarea fiecarei linii. Liniile pot fi de tip directive (cele cu #blbla) sau linii normale care contin instructiunii. Pentru parsarea lui #define obtin simbolul si valoarea(exact asa cum este ea, fara a inlocui alte simboluri continute cu valorile lor) si stochez perechea in hashtable. Pentru #include gasesc mai intai fisierul care trebuie inclus, si apelez functia de parsare pe acesta(uitasem sa specific, dar parsarea se realizeza recursiv, functia de parsare este recursiva, vezi directives_prepro(...)). Pentru #if* (#ifdef, #if, #ifndef), precum #elif si #else, testez existenta symbolului(folosesc hashtable-ul) sau existenta si faptul ca acesta sa aiba o valoare nenula sau testez ca literalul este nenul, si in functie de rezultatul obtinut ignor sau parsez(reapelez functia de parsare) liniile care urmeaza directievi preprocesate.
+Daca linia parsata este o instructiune, atunci incerc sa obtin linia finala, prin inlocuirea simbolurilor continute cu valorile finale(valori calculate pana in momentul respectiv).
+
+De mentionat faptul, ca daca apare o eroare(parametrii din linia de comanda sunt incorecti, alocarea de memorie nu a reusit, fisierul de input contine directive incomplete (#if* fara #endif), etc.) atunci programul isi inceteaza executia si elibereaza resursele folosite(elibereaza memoria alocata si inchide fiserele deschise pana la momentul respectiv).
+
+Compilare:
+	Linux: make
+		   so-cpp [-D <SYMBOL>[=<MAPPING>]] [-I <DIR>] [<INFILE>] [ [-o] <OUTFILE>]
+
+    Windows: nmake
+    	   so-cpp.exe [-D <SYMBOL>[=<MAPPING>]] [-I <DIR>] [<INFILE>] [ [-o] <OUTFILE>]
+
+    unde parametrii au semnificatia din enunt.
+
+Git:
+	https://github.com/AdrianD97/C-preprocessor -> momentan repo-ul este privat, dar va deveni public dupa primirea rezultatelor temei sau dupa deadline-ul hard (ma mai gandesc).
