@@ -1,6 +1,6 @@
 CC = cl
 LINK = link
-CFLAGS = /MD
+CFLAGS = /c /MD
 
 build: so-cpp.exe
 
